@@ -1,0 +1,245 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f8fafb;
+  --background-secondary: #f1f3f5;
+  --foreground: #3b3c36;
+  --foreground-secondary: #536878;
+
+  --primary: #2d68c4;
+  --primary-hover: #2555a3;
+  --primary-light: #6082b6;
+  --primary-ultra-light: #afdbf5;
+
+  --border: #e5e7eb;
+  --border-strong: #d1d5db;
+
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+  --card-shadow:
+    0 1px 3px 0 rgba(45, 104, 196, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+
+  --input-bg: #f8fafb;
+  --input-border: #d1d5db;
+  --input-focus-border: #2d68c4;
+
+  --success: #10b981;
+  --success-light: #d1fae5;
+  --warning: #f59e0b;
+  --warning-light: #fef3c7;
+  --error: #ef4444;
+  --error-light: #fee2e2;
+  --info: #3b82f6;
+  --info-light: #dbeafe;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-background-secondary: var(--background-secondary);
+  --color-foreground: var(--foreground);
+  --color-foreground-secondary: var(--foreground-secondary);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-light: var(--primary-light);
+  --color-primary-ultra-light: var(--primary-ultra-light);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-success: var(--success);
+  --color-success-light: var(--success-light);
+  --color-warning: var(--warning);
+  --color-warning-light: var(--warning-light);
+  --color-error: var(--error);
+  --color-error-light: var(--error-light);
+  --color-info: var(--info);
+  --color-info-light: var(--info-light);
+}
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    @apply bg-background text-foreground selection:bg-primary selection:text-white;
+    font-family: var(--font-outfit), "Inter", system-ui, sans-serif;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+}
+
+@layer components {
+  .medical-card {
+    @apply bg-white border border-border rounded-lg;
+    box-shadow: var(--card-shadow);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .medical-card:hover {
+    @apply border-border-strong;
+    box-shadow: 0 4px 12px 0 rgba(45, 104, 196, 0.08);
+  }
+
+  .status-badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wide;
+  }
+
+  .status-badge.active {
+    @apply bg-success-light text-(--success) border border-(--success)/20;
+  }
+
+  .status-badge.pending {
+    @apply bg-warning-light text-(--warning) border border-(--warning)/20;
+  }
+
+  .status-badge.completed {
+    @apply bg-info-light text-(--info) border border-(--info)/20;
+  }
+
+  .info-pill {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-background-secondary text-[10px] font-semibold uppercase tracking-wider text-foreground-secondary;
+  }
+
+  /* Separator Line */
+  .separator-line {
+    @apply h-4 w-px bg-border shrink-0;
+  }
+
+  .medical-input {
+    @apply w-full px-3 py-2 bg-white border border-border rounded-lg text-sm text-foreground placeholder:text-foreground-secondary/50 outline-none transition-all;
+  }
+
+  .medical-input:hover {
+    @apply border-border-strong;
+  }
+
+  .medical-input:focus {
+    @apply border-primary ring-4 ring-primary/10;
+  }
+
+  .action-btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary-hover active:scale-[0.98] transition-all duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .action-btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 bg-background-secondary text-foreground text-sm font-semibold rounded-lg hover:bg-border-strong active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .action-btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-foreground-secondary text-sm font-semibold rounded-lg hover:bg-background-secondary active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+}
+
+@utility text-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--foreground-secondary);
+}
+
+@utility text-metadata {
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--foreground-secondary);
+}
+
+@utility border-subtle {
+  border: 1px solid var(--border);
+}
+
+@utility border-strong {
+  border: 1px solid var(--border-strong);
+}
+
+/* Hidden Scrollbar */
+@utility scrollbar-hidden {
+  &::-webkit-scrollbar { display: none; }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Default Scrollbar - Minimal e moderno */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background-color: var(--border-strong); border-radius: 3px; transition: background-color 0.2s; }
+::-webkit-scrollbar-thumb:hover { background-color: var(--foreground-secondary); }
+
+/* Custom Scrollbar Class - Para áreas específicas */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background-color: var(--border-strong); border-radius: 2px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: var(--foreground-secondary); }
+
+/* Firefox support */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+/* ========================================
+   SAFE CONTAINER UTILITIES
+   ======================================== */
+
+@utility safe-scroll-container {
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 100%;
+  &::-webkit-scrollbar { width: 6px; }
+  &::-webkit-scrollbar-thumb { background-color: var(--border-strong); border-radius: 3px; }
+}
+
+@utility modal-container {
+  max-width: calc(100vw - 2rem);
+  max-height: calc(100vh - 4rem);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+@utility popover-container {
+  max-width: min(calc(100vw - 2rem), 400px);
+  max-height: calc(100vh - 2rem);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ========================================
+   OVERFLOW PREVENTION
+   ======================================== */
+
+@utility text-overflow-safe {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@utility overflow-wrap-safe {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+}
