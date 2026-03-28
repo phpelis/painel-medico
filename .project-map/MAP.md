@@ -20,6 +20,7 @@ Roda na porta 3001. Auth via Supabase Auth (email/senha).
 ```
 /                          → redirect /dashboard
 /login                     → Login email/senha (Supabase Auth)
+/chatwoot                  → Handshake & Interceptação do Iframe do Chatwoot
 /dashboard                 → Overview (stats + últimos atendimentos)
 /dashboard/atendimentos    → Tabela com filtros + paginação
 /dashboard/documentos      → Grid de modelos de documentos
@@ -44,6 +45,7 @@ GET  /api/empresa/buscar-cnpj          → Busca dados por CNPJ
 GET/POST /api/empresa/certificado      → Certificado da empresa
 POST /api/empresa/certificado/upload   → Upload certificado empresa
 POST /api/auth/logout                  → Logout
+POST /api/auth/chatwoot                → Endpoint BFF para validar Agente (Email/ID) e criar Cookie de Sessão
 ```
 
 ## Componentes principais
@@ -94,8 +96,12 @@ src/lib/
 ├── errors.ts         → ApiError, ValidationError, ForbiddenError, NotFoundError, formatErrorResponse, logError
 ├── env.ts            → ENV (Supabase + Woovi vars), validateEnv()
 ├── encryption.ts     → EncryptionService (AES-256 para woovi_pix_key)
+├── authSession.ts    → sessionService (Criptografia e cookies de sessão customizados para fallback)
 └── certificate/
     └── parseService.ts → parsePfxCertificate(buffer, password) → { dados_certificado, validTo }
+
+src/hooks/
+└── useChatwootHandshake.ts → Hook principal (postMessage) do Handshake do iframe do Chatwoot
 ```
 
 ## Next.js App Router extras

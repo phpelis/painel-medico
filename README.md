@@ -21,6 +21,7 @@ Aplicação standalone para o médico gerenciar seu cadastro, atendimentos, cert
 | Empresa / Dados da Empresa | CNPJ com busca automática (BrasilAPI), razão social, endereço fiscal |
 | Empresa / Config. de Notas | Regime tributário, inscrição municipal, certificado e-CNPJ |
 | Documentos | Modelos de documentos criados (somente leitura) |
+| Integrações / Chatwoot | Endpoint e Hook para Auto-Login/Handshake via Iframe do Chatwoot |
 
 ## Setup local
 
@@ -45,6 +46,8 @@ NUVEM_FISCAL_CLIENT_ID=           # Client ID Nuvem Fiscal
 NUVEM_FISCAL_CLIENT_SECRET=       # Client Secret Nuvem Fiscal
 NUVEM_FISCAL_ENV=sandbox          # 'sandbox' ou 'production'
 APP_ENV=development
+FASTAPI_URL=                      # (Opcional) endpoint para backend ML/FastAPI
+CHATWOOT_URL=https://chat.doutortaon.app # Origem aceita para Iframe do Chatwoot
 ```
 
 ## Migration Supabase
@@ -56,6 +59,13 @@ Execute antes do primeiro deploy:
 ```
 
 Via Supabase MCP ou pelo dashboard do Supabase.
+
+## Integração Chatwoot (Dashboard App)
+
+O sistema suporta **Iframe Auto-Login** via protocolo PostMessage.
+1. No painel de administração do Chatwoot, vá em `Dashboard Apps`.
+2. Adicione uma nova integração apontando para `https://SEU_DOMINIO_MEDICO/chatwoot`.
+3. O painel importará a sessão do Médico logado atestando o `email` e `chatwoot_user_id` e criará um Cookie Criptografado de sessão paralela (`chatwoot_session`). E o painel será carregado nativamente por dentro do Chatwoot sem X-Frame-block.
 
 ## Deploy no Dokploy
 
