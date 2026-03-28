@@ -38,4 +38,3 @@ export const maskCRM_RQE = (value: string): string => {
     return v.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 };
 
-export const maskNumber = maskCRM_RQE;

@@ -27,7 +27,7 @@ export default async function DashboardPage() {
     ]);
 
     const medico = medicoRes.data;
-    const recentAtendimentos = atendimentosRes.data || [];
+    const recentAtendimentos = (atendimentosRes.data as any) || [];
     const totalAtendimentos = atendimentosRes.count || 0;
     const receitaMes = (totalMesRes.data || []).reduce((sum, a) => sum + (a.valor_consulta || 0), 0);
 

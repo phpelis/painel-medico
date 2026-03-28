@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAuthenticatedUser, getSupabaseAdmin } from '@/utils/supabase/server';
-import { EncryptionService } from '@/lib/encryption';
+import { decryptPixKey } from '@/lib/encryption';
 import { ForbiddenError, formatErrorResponse } from '@/lib/errors';
 
 export async function GET() {
@@ -17,14 +17,8 @@ export async function GET() {
 
         if (error || !medico) throw new ForbiddenError('Médico não encontrado');
 
-        // Decrypt pix key server-side
         if (medico.woovi_pix_key) {
-            try {
-                const enc = new EncryptionService();
-                medico.woovi_pix_key = enc.decrypt(medico.woovi_pix_key);
-            } catch {
-                medico.woovi_pix_key = '';
-            }
+            medico.woovi_pix_key = decryptPixKey(medico.woovi_pix_key);
         }
 
         return NextResponse.json({ data: medico });

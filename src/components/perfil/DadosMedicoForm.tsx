@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Medico } from '@/types/database';
 import { maskCPF, maskPhone, maskCRM_RQE } from '@/utils/masks';
+import { UF_OPTIONS } from '@/utils/constants';
 import { SectionCard } from '@/components/shared/SectionCard';
 import { ReadonlyField } from '@/components/shared/ReadonlyField';
 import { FeedbackBanner } from '@/components/shared/FeedbackBanner';
@@ -10,8 +11,6 @@ import { FeedbackBanner } from '@/components/shared/FeedbackBanner';
 interface Props {
     medico: Medico;
 }
-
-const UF_OPTIONS = ['AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT','PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO'];
 
 const ESPECIALIDADES = [
     'Clínica Geral', 'Cardiologia', 'Dermatologia', 'Endocrinologia',
@@ -60,8 +59,6 @@ export function DadosMedicoForm({ medico }: Props) {
         }
     }
 
-    const readonlyInput = (value: string) => <ReadonlyField value={value} />;
-
     const field = (label: string, id: string, value: string, onChange?: (v: string) => void, masked?: (v: string) => string) => (
         <div key={id}>
             <label htmlFor={id} className="text-label block mb-1.5">{label}</label>
@@ -72,11 +69,11 @@ export function DadosMedicoForm({ medico }: Props) {
                     value={masked ? masked(value) : value}
                     onChange={e => onChange(masked ? e.target.value.replace(/\D/g, '') : e.target.value)}
                 />
-            ) : readonlyInput(masked ? masked(value) : value)}
+            ) : <ReadonlyField value={masked ? masked(value) : value} />}
         </div>
     );
 
-    const selectField = (label: string, id: string, value: string, options: string[], onChange: (v: string) => void) => (
+    const selectField = (label: string, id: string, value: string, options: readonly string[], onChange: (v: string) => void) => (
         <div key={id}>
             <label htmlFor={id} className="text-label block mb-1.5">{label}</label>
             {editMode ? (
@@ -89,7 +86,7 @@ export function DadosMedicoForm({ medico }: Props) {
                     <option value="">Selecione</option>
                     {options.map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
-            ) : readonlyInput(value)}
+            ) : <ReadonlyField value={value} />}
         </div>
     );
 
@@ -121,11 +118,11 @@ export function DadosMedicoForm({ medico }: Props) {
                     {field('Nome completo', 'nome', form.nome, v => handleChange('nome', v))}
                     <div>
                         <label className="text-label block mb-1.5">CPF</label>
-                        {readonlyInput(maskCPF(medico.cpf || ''))}
+                        {<ReadonlyField value={maskCPF(medico.cpf || '')} />}
                     </div>
                     <div>
                         <label className="text-label block mb-1.5">E-mail</label>
-                        {readonlyInput(medico.email || '')}
+                        {<ReadonlyField value={medico.email || ''} />}
                     </div>
                     {field('Celular', 'celular', form.celular, v => handleChange('celular', v), maskPhone)}
                     {field('Telefone', 'telefone', form.telefone, v => handleChange('telefone', v), maskPhone)}

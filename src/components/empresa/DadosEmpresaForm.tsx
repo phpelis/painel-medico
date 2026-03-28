@@ -4,13 +4,12 @@ import { useState } from 'react';
 import { Search, RefreshCw } from 'lucide-react';
 import { EmpresaMedico } from '@/types/database';
 import { maskCNPJ, maskCEP, unmask } from '@/utils/masks';
+import { UF_OPTIONS } from '@/utils/constants';
 import { SectionCard } from '@/components/shared/SectionCard';
 import { ReadonlyField } from '@/components/shared/ReadonlyField';
 import { FeedbackBanner } from '@/components/shared/FeedbackBanner';
 
 interface Props { empresa: EmpresaMedico | null }
-
-const UF_OPTIONS = ['AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT','PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO'];
 
 type FormState = {
     cnpj: string; razao_social: string; nome_fantasia: string;
@@ -101,13 +100,12 @@ export function DadosEmpresaForm({ empresa }: Props) {
         }
     }
 
-    const ro = (v: string) => <ReadonlyField value={v} />;
     const inp = (label: string, key: keyof FormState, mask?: (v: string) => string, raw?: boolean) => (
         <div key={key}>
             <label className="text-label block mb-1.5">{label}</label>
             {editMode
                 ? <input className="medical-input" value={mask ? mask(form[key]) : form[key]} onChange={e => set(key, raw ? unmask(e.target.value) : e.target.value)} />
-                : ro(mask ? mask(form[key]) : form[key])
+                : <ReadonlyField value={mask ? mask(form[key]) : form[key]} />
             }
         </div>
     );
@@ -160,7 +158,7 @@ export function DadosEmpresaForm({ empresa }: Props) {
                                     {searching ? '...' : <Search size={15} />}
                                 </button>
                             </div>
-                        ) : ro(maskCNPJ(form.cnpj))}
+                        ) : <ReadonlyField value={maskCNPJ(form.cnpj)} />}
                     </div>
                     {inp('Razão Social', 'razao_social')}
                     {inp('Nome Fantasia', 'nome_fantasia')}
@@ -184,7 +182,7 @@ export function DadosEmpresaForm({ empresa }: Props) {
                                 <option value="">Selecione</option>
                                 {UF_OPTIONS.map(u => <option key={u} value={u}>{u}</option>)}
                             </select>
-                        ) : ro(form.endereco_fiscal_uf)}
+                        ) : <ReadonlyField value={form.endereco_fiscal_uf} />}
                     </div>
                     {inp('Código IBGE', 'endereco_fiscal_ibge')}
                 </div>

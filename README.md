@@ -26,8 +26,7 @@ Aplicação standalone para o médico gerenciar seu cadastro, atendimentos, cert
 
 ```bash
 cd painel-medico
-cp .env.local.example .env.local
-# Preencha as variáveis no .env.local
+# Crie o .env.local com as variáveis abaixo
 npm install
 npm run dev
 # Acesse: http://localhost:3001

@@ -50,11 +50,26 @@ export function getSupabaseAdmin() {
 
 /**
  * Gets the authenticated user from the current session.
- * Returns null if not authenticated.
+ * Falls back to Chatwoot session cookie when Supabase Auth is not available
+ * (e.g., when accessed via Chatwoot iframe).
+ * Returns null if not authenticated by either method.
  */
 export async function getAuthenticatedUser() {
     const supabase = await createClient();
     const { data: { user }, error } = await supabase.auth.getUser();
-    if (error || !user) return null;
-    return user;
+    if (!error && user) return user;
+
+    // Fallback: Chatwoot iframe session
+    const { getChatwootSession } = await import('@/lib/authSession');
+    const chatwootSession = await getChatwootSession();
+
+    if (chatwootSession?.medico_id) {
+        return {
+            id: chatwootSession.medico_id,
+            email: chatwootSession.email,
+            user_metadata: { medico_id: chatwootSession.medico_id },
+        } as unknown as import('@supabase/supabase-js').User;
+    }
+
+    return null;
 }

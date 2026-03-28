@@ -28,6 +28,7 @@ export const ENV = {
     ENCRYPTION_KEY: getEnv('ENCRYPTION_KEY'),
     WOOVI_API_KEY: getEnv('WOOVI_API_KEY'),
     WOOVI_BASE_URL: getEnv('WOOVI_BASE_URL'),
+    FASTAPI_URL: getEnv('FASTAPI_URL'),
 };
 
 export function validateEnv() {

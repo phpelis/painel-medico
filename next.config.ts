@@ -2,9 +2,12 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: 'standalone',
-  reactCompiler: true,
+  reactCompiler: false,
   typescript: {
     ignoreBuildErrors: false,
+  },
+  env: {
+    NEXT_PUBLIC_APP_URL: 'https://medico.doutortaon.app',
   },
 };
 

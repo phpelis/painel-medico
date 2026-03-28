@@ -46,10 +46,10 @@ export async function parsePfxCertificate(buffer: ArrayBuffer, password: string)
     return {
         validTo,
         dados_certificado: {
-            commonName: cleanName,
+            commonName: String(cleanName),
             cpf: cpf || 'Não identificado',
             serialNumber: cert.serialNumber,
-            issuer: issuer.find((a: any) => a.shortName === 'CN' || a.name === 'commonName')?.value || '',
+            issuer: String(issuer.find((a: any) => a.shortName === 'CN' || a.name === 'commonName')?.value || ''),
             validFrom: cert.validity.notBefore.toISOString(),
             validTo,
         },

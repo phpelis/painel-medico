@@ -2,7 +2,7 @@ import { getAuthenticatedUser, getSupabaseAdmin } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation';
 import { TopBar } from '@/components/layout/TopBar';
 import { DadosMedicoForm } from '@/components/perfil/DadosMedicoForm';
-import { EncryptionService } from '@/lib/encryption';
+import { decryptPixKey } from '@/lib/encryption';
 import type { Medico } from '@/types/database';
 
 export default async function PerfilDadosPage() {
@@ -16,15 +16,9 @@ export default async function PerfilDadosPage() {
         .eq('id', user.id)
         .single();
 
-    // Decrypt pix key before passing to client
     const medicoData: Medico = medico || {} as Medico;
     if (medicoData.woovi_pix_key) {
-        try {
-            const enc = new EncryptionService();
-            medicoData.woovi_pix_key = enc.decrypt(medicoData.woovi_pix_key);
-        } catch {
-            medicoData.woovi_pix_key = '';
-        }
+        medicoData.woovi_pix_key = decryptPixKey(medicoData.woovi_pix_key);
     }
 
     return (

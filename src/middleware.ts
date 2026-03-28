@@ -1,17 +1,27 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { updateSession } from '@/utils/supabase/middleware';
 
+const CHATWOOT_ORIGIN = 'https://chat.doutortaon.app';
+
 export async function middleware(request: NextRequest) {
     const { response, user } = await updateSession(request);
 
-    // Security headers
-    response.headers.set('X-Frame-Options', 'DENY');
+    const isChatwootRoute = request.nextUrl.pathname.startsWith('/chatwoot');
+    const isDashboard = request.nextUrl.pathname.startsWith('/dashboard');
+
+    // Security headers — allow iframe only for /chatwoot/* routes
+    if (isChatwootRoute) {
+        response.headers.set('Content-Security-Policy', `frame-ancestors ${CHATWOOT_ORIGIN}`);
+        // Do NOT set X-Frame-Options for Chatwoot routes (allows iframe)
+    } else {
+        response.headers.set('X-Frame-Options', 'DENY');
+    }
+
     response.headers.set('X-Content-Type-Options', 'nosniff');
     response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
 
-    const isDashboard = request.nextUrl.pathname.startsWith('/dashboard');
-
-    if (!user && isDashboard) {
+    // Protected route redirect — skip for Chatwoot routes (auth handled by cookie)
+    if (!user && isDashboard && !isChatwootRoute) {
         const loginUrl = new URL('/login', request.url);
         loginUrl.searchParams.set('redirect', request.nextUrl.pathname);
         return NextResponse.redirect(loginUrl);

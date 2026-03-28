@@ -29,3 +29,12 @@ next-env.d.ts
 # OS
 .DS_Store
 Thumbs.db
+
+# AI Tools / IDEs / Temporary Files
+.mcp.json
+.vscode/settings.local.json
+tmp/
+.agent/mcp/
+
+.claude/
+.agent/

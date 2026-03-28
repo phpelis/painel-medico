@@ -3,7 +3,10 @@
 import { useState } from 'react';
 import { Medico } from '@/types/database';
 import { maskCEP, unmask } from '@/utils/masks';
+import { UF_OPTIONS } from '@/utils/constants';
 import { SectionCard } from '@/components/shared/SectionCard';
+import { ReadonlyField } from '@/components/shared/ReadonlyField';
+import { FeedbackBanner } from '@/components/shared/FeedbackBanner';
 
 interface Props { medico: Medico }
 
@@ -11,8 +14,6 @@ type EnderecoFields = {
     cep: string; logradouro: string; numero: string;
     complemento: string; bairro: string; cidade: string; uf: string;
 };
-
-const UF_OPTIONS = ['AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT','PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO'];
 
 function buildEnd(m: Medico, prefix: 'residencial' | 'comercial'): EnderecoFields {
     const p = `endereco_${prefix}_` as const;
@@ -68,10 +69,6 @@ function AddressFields({
         } catch { /* ignore */ }
     }
 
-    const ro = (v: string) => (
-        <div className="px-3 py-2 bg-background-secondary border border-border rounded-lg text-sm text-foreground-secondary">{v || '—'}</div>
-    );
-
     const inp = (label: string, key: keyof EnderecoFields, mask?: (v: string) => string) => (
         <div key={key}>
             <label className="text-label block mb-1.5">{label}</label>
@@ -83,7 +80,7 @@ function AddressFields({
                     onBlur={key === 'cep' ? e => lookupCep(e.target.value) : undefined}
                     disabled={loading}
                 />
-            ) : ro(mask ? mask(value[key]) : value[key])}
+            ) : <ReadonlyField value={mask ? mask(value[key]) : value[key]} />}
         </div>
     );
 
@@ -102,7 +99,7 @@ function AddressFields({
                         <option value="">Selecione</option>
                         {UF_OPTIONS.map(u => <option key={u} value={u}>{u}</option>)}
                     </select>
-                ) : ro(value.uf)}
+                ) : <ReadonlyField value={value.uf} />}
             </div>
         </div>
     );
@@ -153,11 +150,7 @@ export function EnderecoForm({ medico }: Props) {
                 )}
             </div>
 
-            {feedback && (
-                <div className={`px-4 py-3 rounded-lg text-sm border ${feedback.type === 'success' ? 'bg-success-light text-success border-success/20' : 'bg-error-light text-error border-error/20'}`}>
-                    {feedback.msg}
-                </div>
-            )}
+            {feedback && <FeedbackBanner type={feedback.type} message={feedback.msg} />}
 
             <SectionCard title="Endereço Residencial">
                 <AddressFields prefix="residencial" value={residencial} onChange={setResidencial} editMode={editMode} loading={saving} />

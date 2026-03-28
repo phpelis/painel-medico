@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
 
         const pfxBuffer = await pfxFile.arrayBuffer();
 
-        let dados_certificado: Record<string, string>;
+        let dados_certificado: { commonName: string; cpf: string; serialNumber: string; issuer: string; validFrom: string; validTo: string };
         let validTo: string;
 
         try {

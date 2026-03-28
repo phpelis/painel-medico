@@ -11,6 +11,15 @@ const outfit = Outfit({
 export const metadata: Metadata = {
     title: 'Painel do Médico | DoutorTáOn',
     description: 'Gerencie seu cadastro, atendimentos e documentos.',
+    metadataBase: new URL('https://medico.doutortaon.app'),
+    robots: {
+        index: false,
+        follow: false,
+        googleBot: {
+            index: false,
+            follow: false,
+        },
+    },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

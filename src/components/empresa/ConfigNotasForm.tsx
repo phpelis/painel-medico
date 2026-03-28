@@ -47,8 +47,6 @@ export function ConfigNotasForm({ empresa }: Props) {
         }
     }
 
-    const ro = (v: string) => <ReadonlyField value={v} />;
-
     return (
         <SectionCard title="Configuração Fiscal">
             <div className="flex items-center justify-between mb-4">
@@ -75,23 +73,23 @@ export function ConfigNotasForm({ empresa }: Props) {
                 <div>
                     <label className="text-label block mb-1.5">Regime Tributário</label>
                     {editMode ? (
-                        <select className="medical-input" value={form.regime_tributario} onChange={e => setForm(p => ({ ...p, regime_tributario: Number(e.target.value) }))}>
+                        <select className="medical-input" value={form.regime_tributario} onChange={e => setForm(p => ({ ...p, regime_tributario: Number(e.target.value) as 1 | 2 | 3 | 4 }))}>
                             {REGIMES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                         </select>
-                    ) : ro(REGIMES.find(r => r.value === form.regime_tributario)?.label || '—')}
+                    ) : <ReadonlyField value={REGIMES.find(r => r.value === form.regime_tributario)?.label || '—'} />}
                 </div>
                 <div>
                     <label className="text-label block mb-1.5">Inscrição Municipal</label>
                     {editMode
                         ? <input className="medical-input" value={form.inscricao_municipal} onChange={e => setForm(p => ({ ...p, inscricao_municipal: e.target.value }))} />
-                        : ro(form.inscricao_municipal)
+                        : <ReadonlyField value={form.inscricao_municipal} />
                     }
                 </div>
                 <div>
                     <label className="text-label block mb-1.5">Inscrição Estadual</label>
                     {editMode
                         ? <input className="medical-input" value={form.inscricao_estadual} onChange={e => setForm(p => ({ ...p, inscricao_estadual: e.target.value }))} />
-                        : ro(form.inscricao_estadual)
+                        : <ReadonlyField value={form.inscricao_estadual} />
                     }
                 </div>
             </div>

@@ -49,3 +49,11 @@ export class EncryptionService {
         }
     }
 }
+
+export function decryptPixKey(encrypted: string): string {
+    try {
+        return new EncryptionService().decrypt(encrypted);
+    } catch {
+        return '';
+    }
+}

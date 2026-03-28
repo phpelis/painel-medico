@@ -74,7 +74,7 @@ export function DocumentosGrid({ modelos }: Props) {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setPreview(null)}>
                     <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-                            <h2 className="text-sm font-semibold text-foreground">{preview.nome}</h2>
+                            <h2 className="text-sm font-semibold text-foreground">{preview.titulo}</h2>
                             <button onClick={() => setPreview(null)} className="text-foreground-secondary hover:text-foreground text-lg leading-none">×</button>
                         </div>
                         <div className="flex-1 overflow-y-auto p-5">
