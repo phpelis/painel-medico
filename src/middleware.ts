@@ -9,13 +9,9 @@ export async function middleware(request: NextRequest) {
     const isChatwootRoute = request.nextUrl.pathname.startsWith('/chatwoot');
     const isDashboard = request.nextUrl.pathname.startsWith('/dashboard');
 
-    // Security headers — allow iframe only for /chatwoot/* routes
-    if (isChatwootRoute) {
-        response.headers.set('Content-Security-Policy', `frame-ancestors ${CHATWOOT_ORIGIN}`);
-        // Do NOT set X-Frame-Options for Chatwoot routes (allows iframe)
-    } else {
-        response.headers.set('X-Frame-Options', 'DENY');
-    }
+    // Security headers — allow iframe for Chatwoot origin globally
+    response.headers.set('Content-Security-Policy', `frame-ancestors 'self' ${CHATWOOT_ORIGIN}`);
+    response.headers.delete('X-Frame-Options'); // Allow via CSP instead
 
     response.headers.set('X-Content-Type-Options', 'nosniff');
     response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');

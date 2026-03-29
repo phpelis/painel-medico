@@ -1,16 +1,43 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import { FeedbackBanner } from '@/components/shared/FeedbackBanner';
+import { useChatwootHandshake } from '@/hooks/useChatwootHandshake';
 
 export default function LoginPage() {
     const router = useRouter();
+    const { doctorEmail, chatwootUserId, isLinked, handshakeLoading } = useChatwootHandshake();
+
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [autoAuthLoading, setAutoAuthLoading] = useState(false);
     const [error, setError] = useState('');
+
+    useEffect(() => {
+        if (isLinked && !autoAuthLoading) {
+            setAutoAuthLoading(true);
+            fetch('/api/auth/chatwoot', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ doctorEmail, chatwootUserId }),
+            }).then(async (res) => {
+                if (res.ok) {
+                    router.push('/dashboard');
+                    router.refresh();
+                } else {
+                    const data = await res.json().catch(() => ({}));
+                    setError(data.error?.message || 'Falha ao logar automaticamente (Chatwoot)');
+                    setAutoAuthLoading(false);
+                }
+            }).catch(() => {
+                setError('Falha de comunicação no auto-login do Chatwoot');
+                setAutoAuthLoading(false);
+            });
+        }
+    }, [isLinked, autoAuthLoading, doctorEmail, chatwootUserId, router]);
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -33,6 +60,19 @@ export default function LoginPage() {
         } finally {
             setLoading(false);
         }
+    }
+
+    if (handshakeLoading || autoAuthLoading) {
+        return (
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 text-center">
+                <div className="w-12 h-12 border-4 border-solid border-slate-700 border-t-primary rounded-full animate-spin mb-4 mx-auto" />
+                <p className="text-foreground-secondary font-medium">
+                    {autoAuthLoading 
+                        ? `Autenticando Dr(a). ${doctorEmail}...` 
+                        : 'Sincronizando com o Chatwoot...'}
+                </p>
+            </div>
+        );
     }
 
     return (

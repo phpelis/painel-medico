@@ -65,12 +65,18 @@ export function useChatwootHandshake() {
         // Poll parent iframe for context data
         const interval = setInterval(
             () => window.parent.postMessage('chatwoot-dashboard-app:fetch-info', '*'),
-            5000
+            3000
         );
+
+        // Fallback timeout: if no valid handshake after 3s, show manual login
+        const timeout = setTimeout(() => {
+            setHandshakeLoading(false);
+        }, 3000);
 
         return () => {
             window.removeEventListener('message', handleMessage);
             clearInterval(interval);
+            clearTimeout(timeout);
         };
     }, []);
 
