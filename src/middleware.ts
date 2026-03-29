@@ -6,25 +6,30 @@ const CHATWOOT_ORIGIN = 'https://chat.doutortaon.app';
 export async function middleware(request: NextRequest) {
     const { response, user } = await updateSession(request);
 
-    const isChatwootRoute = request.nextUrl.pathname.startsWith('/chatwoot');
     const isDashboard = request.nextUrl.pathname.startsWith('/dashboard');
+    const isLogin = request.nextUrl.pathname === '/login';
 
-    // Security headers — allow iframe for Chatwoot origin globally
+    // Cookie set by /api/auth/chatwoot after successful Chatwoot iframe auth.
+    // Presence (not content) is checked here — actual validation happens in getAuthenticatedUser().
+    const hasChatwootSession = request.cookies.has('chatwoot_session');
+
+    const isAuthenticated = !!user || hasChatwootSession;
+
+    // Security headers — allow iframe embedding from Chatwoot origin
     response.headers.set('Content-Security-Policy', `frame-ancestors 'self' ${CHATWOOT_ORIGIN}`);
-    response.headers.delete('X-Frame-Options'); // Allow via CSP instead
-
+    response.headers.delete('X-Frame-Options');
     response.headers.set('X-Content-Type-Options', 'nosniff');
     response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
 
-    // Protected route redirect — skip for Chatwoot routes (auth handled by cookie)
-    if (!user && isDashboard && !isChatwootRoute) {
+    // Protect dashboard — redirect to login if not authenticated
+    if (!isAuthenticated && isDashboard) {
         const loginUrl = new URL('/login', request.url);
         loginUrl.searchParams.set('redirect', request.nextUrl.pathname);
         return NextResponse.redirect(loginUrl);
     }
 
-    // Redirect authenticated users away from login
-    if (user && request.nextUrl.pathname === '/login') {
+    // Skip login page for already-authenticated users
+    if (isAuthenticated && isLogin) {
         return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 

@@ -1,5 +1,75 @@
-import { redirect } from 'next/navigation';
+'use client';
 
+import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { useChatwootHandshake } from '@/hooks/useChatwootHandshake';
+import { LoadingScreen, StandaloneScreen, ErrorScreen } from '@/components/shared/StatusScreens';
+
+/**
+ * Root page — Chatwoot Dashboard App entry point.
+ * Loaded inside the Chatwoot iframe at https://medico.doutortaon.app
+ * Receives agent data via postMessage, authenticates via BFF, then redirects to dashboard.
+ */
 export default function RootPage() {
-    redirect('/dashboard');
+    const router = useRouter();
+    const { doctorEmail, chatwootUserId, isLinked, handshakeLoading, isStandalone } = useChatwootHandshake();
+
+    const [authStatus, setAuthStatus] = useState<'pending' | 'authenticating' | 'success' | 'error'>('pending');
+    const [errorMessage, setErrorMessage] = useState('');
+    const [hasAuthenticated, setHasAuthenticated] = useState(false);
+
+    const authenticate = useCallback(async () => {
+        if (hasAuthenticated) return;
+        setHasAuthenticated(true);
+        setAuthStatus('authenticating');
+
+        try {
+            const res = await fetch('/api/auth/chatwoot', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ doctorEmail, chatwootUserId }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.error?.message || 'Falha na autenticação');
+            }
+
+            setAuthStatus('success');
+            setTimeout(() => router.push('/dashboard'), 300);
+        } catch (err) {
+            setAuthStatus('error');
+            setErrorMessage(err instanceof Error ? err.message : 'Erro desconhecido');
+            setHasAuthenticated(false);
+        }
+    }, [doctorEmail, chatwootUserId, hasAuthenticated, router]);
+
+    useEffect(() => {
+        if (isLinked) {
+            authenticate();
+        }
+    }, [isLinked, authenticate]);
+
+    if (isStandalone) {
+        return <StandaloneScreen />;
+    }
+
+    if (handshakeLoading || authStatus === 'pending') {
+        return <LoadingScreen message="Conectando ao Chatwoot..." />;
+    }
+
+    if (authStatus === 'authenticating') {
+        return <LoadingScreen message={`Autenticando Dr(a). ${doctorEmail}...`} />;
+    }
+
+    if (authStatus === 'success') {
+        return <LoadingScreen message="Autenticado! Redirecionando..." />;
+    }
+
+    if (authStatus === 'error') {
+        return <ErrorScreen message={errorMessage} />;
+    }
+
+    return null;
 }
