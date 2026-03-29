@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import { FeedbackBanner } from '@/components/shared/FeedbackBanner';
+import { LoadingScreen } from '@/components/shared/StatusScreens';
 import { useChatwootHandshake } from '@/hooks/useChatwootHandshake';
 
 export default function LoginPage() {
@@ -64,14 +65,11 @@ export default function LoginPage() {
 
     if (handshakeLoading || autoAuthLoading) {
         return (
-            <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 text-center">
-                <div className="w-12 h-12 border-4 border-solid border-slate-700 border-t-primary rounded-full animate-spin mb-4 mx-auto" />
-                <p className="text-foreground-secondary font-medium">
-                    {autoAuthLoading 
-                        ? `Autenticando Dr(a). ${doctorEmail}...` 
-                        : 'Sincronizando com o Chatwoot...'}
-                </p>
-            </div>
+            <LoadingScreen 
+                message={autoAuthLoading 
+                    ? `Autenticando Dr(a). ${doctorEmail}...` 
+                    : 'Sincronizando com o Chatwoot...'} 
+            />
         );
     }
 

@@ -70,16 +70,9 @@ export async function POST(request: Request) {
             request_id: requestId,
         });
     } catch (error: unknown) {
-        const err = error instanceof Error ? error : new Error(String(error));
-        logError(err instanceof ApiError ? err : new ApiError(err.message, err.message, 500, requestId), requestId);
+        const apiError = error instanceof ApiError ? error : new ApiError(error instanceof Error ? error.message : String(error), '', 500, requestId);
+        logError(apiError, requestId);
 
-        if (err instanceof ApiError) {
-            return NextResponse.json(formatErrorResponse(err), { status: err.statusCode });
-        }
-
-        return NextResponse.json(
-            { error: { message: 'Erro interno do servidor', request_id: requestId } },
-            { status: 500 }
-        );
+        return NextResponse.json(formatErrorResponse(apiError), { status: apiError.statusCode });
     }
 }

@@ -14,9 +14,20 @@ export function useChatwootHandshake() {
     const [isLinked, setIsLinked] = useState(false);
     const [handshakeLoading, setHandshakeLoading] = useState(true);
     const [isStandalone, setIsStandalone] = useState(false);
-    const [debugData, setDebugData] = useState<unknown>(null);
 
     useEffect(() => {
+        // 1. Initial check: Try to get data from URL params as a fast fallback
+        const searchParams = new URLSearchParams(window.location.search);
+        const emailParam = searchParams.get('user_email') || searchParams.get('email');
+        const idParam = searchParams.get('user_id') || searchParams.get('id');
+
+        if (emailParam) setDoctorEmail(emailParam);
+        if (idParam) setChatwootUserId(parseInt(idParam));
+
+        if (emailParam && idParam) {
+            setIsLinked(true);
+            setHandshakeLoading(false);
+        }
         let inIframe = false;
         try {
             inIframe = window.self !== window.top;
@@ -40,7 +51,7 @@ export function useChatwootHandshake() {
                 if (typeof event.data === 'string' && !event.data.startsWith('{')) return;
 
                 const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-                setDebugData(data);
+
 
                 if (data.event === 'appContext' || data.event === 'chatwoot-dashboard-app:fetch-info') {
                     const ctx = data.data || data;
@@ -56,7 +67,7 @@ export function useChatwootHandshake() {
                     setHandshakeLoading(false);
                 }
             } catch {
-                console.warn('[useChatwootHandshake] Failed to parse message');
+                // Silently ignore non-JSON messages from other plugins
             }
         };
 
@@ -65,13 +76,14 @@ export function useChatwootHandshake() {
         // Poll parent iframe for context data
         const interval = setInterval(
             () => window.parent.postMessage('chatwoot-dashboard-app:fetch-info', '*'),
-            3000
+            2000
         );
 
-        // Fallback timeout: if no valid handshake after 3s, show manual login
+        // Fallback timeout: if no valid handshake after 5s, we stop loading
+        // (but we might have data from URL params)
         const timeout = setTimeout(() => {
             setHandshakeLoading(false);
-        }, 3000);
+        }, 5000);
 
         return () => {
             window.removeEventListener('message', handleMessage);
@@ -86,6 +98,5 @@ export function useChatwootHandshake() {
         isLinked,
         handshakeLoading,
         isStandalone,
-        debugData,
     };
 }
