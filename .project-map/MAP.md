@@ -72,16 +72,23 @@ src/components/
 └── shared/
     ├── SectionCard.tsx       → Card container com título
     ├── ReadonlyField.tsx     → Campo somente-leitura (design system)
-    └── FeedbackBanner.tsx    → Banner de feedback (success/error)
+    ├── FeedbackBanner.tsx    → Banner de feedback (success/error)
+    └── StatusScreens.tsx     → Telas globais de carregamento (premium), erro e acesso restrito (iframe)
 ```
 
 ## Auth Flow
 
-```
+### Login Nativo
 /login → supabase.auth.signInWithPassword()
        → middleware.ts valida JWT em cada request
        → redirect /login se não autenticado
-       → redirect /dashboard se já autenticado + acessa /login
+
+### Login via Chatwoot (Dashboard App)
+/chatwoot → useChatwootHandshake() via postMessage
+          → POST /api/auth/chatwoot (BFF)
+          → Valida Email/ID no Supabase
+          → Cria cookie 'chatwoot_session' (SameSite: None, Secure: True)
+          → Redirect /dashboard
 ```
 
 ## Utilities e lib

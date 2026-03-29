@@ -23,6 +23,15 @@ Aplicação standalone para o médico gerenciar seu cadastro, atendimentos, cert
 | Documentos | Modelos de documentos criados (somente leitura) |
 | Integrações / Chatwoot | Endpoint e Hook para Auto-Login/Handshake via Iframe do Chatwoot |
 
+## UI/UX & Design System
+
+A aplicação compartilha tokens e componentes visuais com o `painel-atendimento`:
+
+- **Status Premium**: Telas de carregamento (`LoadingScreen`) com animações da `Lucide`.
+- **Handshake Visual**: Handshake sincronizado com estados de carregamento.
+- **Acesso Restrito**: Bloqueio visual para acessos fora do iframe oficial (`StandaloneScreen`).
+- **Feedback**: Banners de sucesso e erro padronizados (`FeedbackBanner`).
+
 ## Setup local
 
 ```bash
@@ -65,7 +74,8 @@ Via Supabase MCP ou pelo dashboard do Supabase.
 O sistema suporta **Iframe Auto-Login** via protocolo PostMessage.
 1. No painel de administração do Chatwoot, vá em `Dashboard Apps`.
 2. Adicione uma nova integração apontando para `https://SEU_DOMINIO_MEDICO/chatwoot`.
-3. O painel importará a sessão do Médico logado atestando o `email` e `chatwoot_user_id` e criará um Cookie Criptografado de sessão paralela (`chatwoot_session`). E o painel será carregado nativamente por dentro do Chatwoot sem X-Frame-block.
+3. O painel executa um handshake transparente com fallback automático após 5 segundos.
+4. Segurança via BFF (`/api/auth/chatwoot`) com cookies criptografados e CSP dinâmico.
 
 ## Deploy no Dokploy
 
