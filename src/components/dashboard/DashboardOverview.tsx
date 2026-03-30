@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ClipboardList, DollarSign, Shield, Star, AlertTriangle } from 'lucide-react';
+import { ClipboardList, DollarSign, Shield, AlertTriangle } from 'lucide-react';
 import { Atendimento } from '@/types/database';
 import { daysUntil } from '@/utils/index';
 import { PAGAMENTO_BADGES } from '@/utils/constants';
@@ -8,11 +8,10 @@ interface Props {
     totalAtendimentos: number;
     receitaMes: number;
     certVencimento: string | null;
-    mediaAvaliacao?: number;
     recentAtendimentos: Partial<Atendimento>[];
 }
 
-export function DashboardOverview({ totalAtendimentos, receitaMes, certVencimento, mediaAvaliacao, recentAtendimentos }: Props) {
+export function DashboardOverview({ totalAtendimentos, receitaMes, certVencimento, recentAtendimentos }: Props) {
     const certDias = certVencimento ? daysUntil(certVencimento) : null;
     const certAlerta = certDias !== null && certDias <= 30;
 
@@ -45,11 +44,6 @@ export function DashboardOverview({ totalAtendimentos, receitaMes, certVenciment
                     label="Receita no mês"
                     value={`R$ ${receitaMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
                     href="/dashboard/atendimentos"
-                />
-                <StatCard
-                    icon={<Star size={20} className="text-warning" />}
-                    label="Avaliação média"
-                    value={mediaAvaliacao ? `${mediaAvaliacao.toFixed(1)} / 5` : '—'}
                 />
                 <StatCard
                     icon={<Shield size={20} className={certAlerta ? 'text-warning' : 'text-success'} />}

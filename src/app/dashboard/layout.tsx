@@ -11,7 +11,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     const admin = getSupabaseAdmin();
     const { data: medico } = await admin
         .from('medicos')
-        .select('nome, crm, uf_crm')
+        .select('nome, crm, uf_crm, media_avaliacao')
         .eq('id', user.id)
         .maybeSingle();
 
@@ -21,6 +21,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
                 nomeMedico={medico?.nome}
                 crm={medico?.crm ? String(medico.crm) : undefined}
                 ufCrm={medico?.uf_crm}
+                mediaAvaliacao={medico?.media_avaliacao ?? undefined}
             />
             <NavBar />
             <SubNavBar />

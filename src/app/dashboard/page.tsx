@@ -10,7 +10,7 @@ export default async function DashboardPage() {
 
     // Fetch medico + recent atendimentos in parallel
     const [medicoRes, atendimentosRes, totalMesRes] = await Promise.all([
-        admin.from('medicos').select('nome, crm, uf_crm, media_avaliacao').eq('id', user.id).maybeSingle(),
+        admin.from('medicos').select('nome, crm, uf_crm').eq('id', user.id).maybeSingle(),
         admin
             .from('atendimentos')
             .select('id, status, inicio, fim, valor_consulta, pagamento_status, paciente:pacientes(nome)', { count: 'exact' })
@@ -48,7 +48,6 @@ export default async function DashboardPage() {
                 receitaMes={receitaMes}
                 certVencimento={certVencimento}
                 recentAtendimentos={recentAtendimentos}
-                mediaAvaliacao={medico?.media_avaliacao}
             />
         </div>
     );
