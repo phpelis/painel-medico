@@ -42,7 +42,7 @@ export default async function DashboardPage() {
     const certVencimento = certRes.data?.validade_ate || null;
 
     return (
-        <div className="p-6">
+        <div className="p-4">
             <DashboardOverview
                 totalAtendimentos={totalAtendimentos}
                 receitaMes={receitaMes}

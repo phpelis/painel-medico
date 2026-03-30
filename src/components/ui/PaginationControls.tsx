@@ -7,7 +7,7 @@ interface PaginationControlsProps {
 
 export function PaginationControls({ currentPage, totalPages, onPageChange, className }: PaginationControlsProps) {
     return (
-        <div className={`flex items-center justify-between pt-4 border-t border-border mt-2 ${className || ''}`}>
+        <div className={`flex items-center justify-between ${className || ''}`}>
             <span className="text-[10px] text-foreground-secondary font-medium uppercase tracking-wide">
                 Página {currentPage} de {totalPages}
             </span>
@@ -15,14 +15,14 @@ export function PaginationControls({ currentPage, totalPages, onPageChange, clas
                 <button
                     onClick={() => onPageChange(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1}
-                    className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-foreground-secondary bg-white border border-border rounded-lg hover:bg-background-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-foreground-secondary bg-background border border-border rounded-lg hover:bg-background-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                     Anterior
                 </button>
                 <button
                     onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
                     disabled={currentPage === totalPages}
-                    className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-foreground-secondary bg-white border border-border rounded-lg hover:bg-background-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-foreground-secondary bg-background border border-border rounded-lg hover:bg-background-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                     Próximo
                 </button>

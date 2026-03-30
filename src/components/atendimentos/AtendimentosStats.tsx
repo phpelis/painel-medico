@@ -10,7 +10,7 @@ export function AtendimentosStats({ total, totalPago, totalPendente, loading, ha
     if (loading || !hasData) return null;
 
     return (
-        <div className="flex gap-4 text-sm shrink-0">
+        <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm shrink-0">
             <span className="text-foreground-secondary">
                 <strong className="text-foreground">{total}</strong> atendimentos
             </span>

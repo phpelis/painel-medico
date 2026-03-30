@@ -26,7 +26,7 @@ export function SubNavBar() {
     const tabs = isPerfil ? perfilTabs : empresaTabs;
 
     return (
-        <div className="shrink-0 bg-background-secondary border-b border-border h-10 flex items-center px-6 gap-1">
+        <div className="shrink-0 bg-background-secondary border-b border-border h-10 flex items-center px-4 sm:px-6 gap-1 overflow-x-auto scrollbar-hidden">
             {tabs.map((tab) => {
                 const isActive = pathname === tab.href;
                 return (

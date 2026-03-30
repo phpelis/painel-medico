@@ -54,7 +54,7 @@ export function DashboardOverview({ totalAtendimentos, receitaMes, certVenciment
             </div>
 
             {/* Recent atendimentos */}
-            <div className="medical-card p-5">
+            <div className="medical-card p-4">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-sm font-semibold text-foreground">Últimos atendimentos</h2>
                     <Link href="/dashboard/atendimentos" className="text-xs text-primary hover:underline">

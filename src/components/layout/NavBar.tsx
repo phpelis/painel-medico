@@ -48,8 +48,8 @@ export function NavBar() {
     const pathname = usePathname();
 
     return (
-        <nav className="shrink-0 bg-white border-b border-border h-14 flex items-center px-6">
-            <div className="flex items-center gap-1">
+        <nav className="shrink-0 bg-white border-b border-border h-14 flex items-center px-4 sm:px-6 overflow-x-auto scrollbar-hidden">
+            <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
                 {navItems.map((item) => {
                     const isActive = item.exact
                         ? pathname === item.href

@@ -11,7 +11,7 @@ interface AppHeaderProps {
 export function AppHeader({ nomeMedico, crm, ufCrm, mediaAvaliacao }: AppHeaderProps) {
     return (
         <header className="shrink-0 bg-white border-b border-border shadow-sm relative z-50">
-            <div className="flex items-center justify-between px-6 py-3 gap-6">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3 gap-3 sm:gap-6">
 
                 {/* Left: Doctor info */}
                 <div className="flex-1 flex items-center gap-4 min-w-0">

@@ -100,7 +100,7 @@ export function AtendimentosTable({
             )}
 
             {!loading && totalPages > 1 && (
-                <div className="px-4 pb-4 shrink-0 bg-white">
+                <div className="px-4 py-4 shrink-0 border-t border-border">
                     <PaginationControls
                         currentPage={currentPage}
                         totalPages={totalPages}

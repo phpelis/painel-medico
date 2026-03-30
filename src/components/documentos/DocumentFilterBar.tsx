@@ -19,9 +19,9 @@ export function DocumentFilterBar({
     onOpenCreate 
 }: Props) {
     return (
-        <div className="medical-card p-3 shrink-0">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 flex-1">
+        <div className="medical-card p-4 shrink-0">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 flex-1">
                     <div className="relative">
                         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-secondary pointer-events-none" />
                         <input

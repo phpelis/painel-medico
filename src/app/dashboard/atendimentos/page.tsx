@@ -7,7 +7,7 @@ export default async function AtendimentosPage() {
     if (!user) redirect('/login');
 
     return (
-        <div className="p-6">
+        <div className="p-4">
             <AtendimentosClient />
         </div>
     );

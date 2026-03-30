@@ -58,10 +58,10 @@ export function DocumentTable({
                                     <td className="px-4 py-3 align-top whitespace-nowrap">
                                         {createdAt ? (
                                             <div className="flex flex-col">
-                                                <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1">Data</span>
-                                                <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600 tracking-tight leading-none">
+                                                <span className="text-[8px] font-black text-foreground-secondary/40 uppercase tracking-widest leading-none mb-1">Data</span>
+                                                <div className="flex items-center gap-2 text-[11px] font-bold text-foreground-secondary tracking-tight leading-none">
                                                     <span>{dateStr}</span>
-                                                    <span className="text-slate-600 opacity-60 text-[10px]">{timeStr}</span>
+                                                    <span className="text-foreground-secondary/60 text-[10px]">{timeStr}</span>
                                                 </div>
                                             </div>
                                         ) : '—'}
@@ -86,7 +86,7 @@ export function DocumentTable({
                         })}
                         {items.length === 0 && (
                             <tr>
-                                <td colSpan={4} className="p-20 text-center text-foreground-secondary text-sm">
+                                <td colSpan={4} className="py-12 text-center text-foreground-secondary text-sm">
                                     Nenhum modelo encontrado.
                                 </td>
                             </tr>
@@ -96,7 +96,7 @@ export function DocumentTable({
             </div>
 
             {totalPages > 1 && (
-                <div className="px-4 pb-4 pt-4 shrink-0 bg-white border-t border-border z-20">
+                <div className="px-4 py-4 shrink-0 border-t border-border">
                     <PaginationControls
                         currentPage={currentPage}
                         totalPages={totalPages}

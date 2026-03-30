@@ -21,8 +21,8 @@ const STATUS_OPTIONS = [
 
 export function AtendimentosFilterBar({ filtros, onFilter }: Props) {
     return (
-        <div className="medical-card p-3 shrink-0">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="medical-card p-4 shrink-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="relative">
                     <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-secondary pointer-events-none" />
                     <input
