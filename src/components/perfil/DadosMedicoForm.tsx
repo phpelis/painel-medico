@@ -18,6 +18,8 @@ const ESPECIALIDADES = [
     'Ortopedia', 'Pediatria', 'Psiquiatria', 'Urologia', 'Outras',
 ];
 
+const PIX_TIPO_OPTIONS = ['CPF', 'CNPJ', 'E-mail', 'Telefone', 'Chave Aleatória'] as const;
+
 export function DadosMedicoForm({ medico }: Props) {
     const [form, setForm] = useState({
         nome: medico.nome || '',
@@ -30,7 +32,7 @@ export function DadosMedicoForm({ medico }: Props) {
         rqe_primaria: medico.rqe_primaria || '',
         rqe_secundaria: medico.rqe_secundaria || '',
         woovi_pix_key: medico.woovi_pix_key || '',
-        woovi_pix_key_tipo: (medico as any).woovi_pix_key_tipo || '',
+        woovi_pix_key_tipo: medico.woovi_pix_key_tipo || '',
     });
 
     const [editMode, setEditMode] = useState(false);
@@ -143,24 +145,7 @@ export function DadosMedicoForm({ medico }: Props) {
 
             <SectionCard title="Dados Financeiros">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label htmlFor="pix_tipo" className="text-label block mb-1.5">Tipo da chave Pix</label>
-                        {editMode ? (
-                            <select
-                                id="pix_tipo"
-                                value={form.woovi_pix_key_tipo}
-                                onChange={e => handleChange('woovi_pix_key_tipo', e.target.value)}
-                                className="medical-input"
-                            >
-                                <option value="">Selecione o tipo</option>
-                                <option value="cpf">CPF</option>
-                                <option value="cnpj">CNPJ</option>
-                                <option value="email">E-mail</option>
-                                <option value="telefone">Telefone</option>
-                                <option value="aleatoria">Chave Aleatória</option>
-                            </select>
-                        ) : <ReadonlyField value={form.woovi_pix_key_tipo} />}
-                    </div>
+                    {selectField('Tipo da chave Pix', 'pix_tipo', form.woovi_pix_key_tipo, PIX_TIPO_OPTIONS, v => handleChange('woovi_pix_key_tipo', v))}
                     {field('Chave Pix (Woovi)', 'pix', form.woovi_pix_key, v => handleChange('woovi_pix_key', v))}
                 </div>
             </SectionCard>

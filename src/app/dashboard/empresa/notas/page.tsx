@@ -25,6 +25,7 @@ export default async function EmpresaNotasPage() {
                     cert={certRes.data}
                     tipo="e-cnpj"
                     uploadEndpoint="/api/empresa/certificado/upload"
+                    deleteEndpoint="/api/empresa/certificado"
                     title="Certificado Digital e-CNPJ"
                     description="Usado para assinar Notas Fiscais de Serviço Eletrônicas (NFS-e) via Nuvem Fiscal."
                 />

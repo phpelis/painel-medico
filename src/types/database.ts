@@ -48,6 +48,7 @@ export type Medico = {
     criado_at?: string;
     media_avaliacao?: number;
     woovi_pix_key?: string;
+    woovi_pix_key_tipo?: string;
     comissao_personalizada?: number;
 };
 

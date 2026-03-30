@@ -21,6 +21,7 @@ export default async function PerfilCertificadoPage() {
                 cert={cert}
                 tipo="e-cpf"
                 uploadEndpoint="/api/certificado/upload"
+                deleteEndpoint="/api/certificado"
                 title="Certificado Digital e-CPF"
                 description="Este certificado é usado para assinar receitas, atestados e outros documentos digitalmente."
             />

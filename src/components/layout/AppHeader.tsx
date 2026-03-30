@@ -1,5 +1,3 @@
-'use client';
-
 import { Bell, Star, Stethoscope } from 'lucide-react';
 import { maskCRM_RQE } from '@/utils/masks';
 

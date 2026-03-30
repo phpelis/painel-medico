@@ -11,12 +11,13 @@ interface Props {
     cert: Partial<CertificadoDigital> | null;
     tipo: 'e-cpf' | 'e-cnpj';
     uploadEndpoint: string;
+    deleteEndpoint: string;
     title: string;
     description: string;
     extraFields?: Record<string, string>;
 }
 
-export function CertificadoSection({ cert, tipo, uploadEndpoint, title, description, extraFields }: Props) {
+export function CertificadoSection({ cert, tipo, uploadEndpoint, deleteEndpoint, title, description, extraFields }: Props) {
     const [file, setFile] = useState<File | null>(null);
     const [password, setPassword] = useState('');
     const [uploading, setUploading] = useState(false);
@@ -24,8 +25,6 @@ export function CertificadoSection({ cert, tipo, uploadEndpoint, title, descript
     const [confirmDelete, setConfirmDelete] = useState(false);
     const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
     const [currentCert, setCurrentCert] = useState(cert);
-
-    const deleteEndpoint = uploadEndpoint.replace('/upload', '');
 
     async function handleDelete() {
         if (!currentCert?.id) return;

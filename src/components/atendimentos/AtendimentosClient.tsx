@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Search, Filter, Clock } from 'lucide-react';
 import type { Atendimento } from '@/types/database';
 import { PAGAMENTO_BADGES } from '@/utils/constants';
@@ -21,31 +21,32 @@ const STATUS_OPTIONS = [
     { value: 'em_atendimento', label: 'Em atendimento' },
 ];
 
-// Badge de pagamento com tratamento especial para consultas gratuitas (valor = 0)
 const BADGE_GRATUITO = { label: 'Gratuito', cls: 'status-badge completed' };
 const BADGE_CANCELADO_ATEND = { label: 'Desconsiderado', cls: 'status-badge bg-background-secondary text-foreground-secondary border border-border' };
 
 function getPagamentoBadge(a: Atendimento) {
-    // Atendimento cancelado: pagamento desconsiderado independente do valor
     if (a.status === 'cancelado') return BADGE_CANCELADO_ATEND;
-    // Valor zero em atendimento não-cancelado = consulta gratuita
     if (a.valor_consulta === 0) return BADGE_GRATUITO;
     return PAGAMENTO_BADGES[a.pagamento_status || 'pendente'] || PAGAMENTO_BADGES.pendente;
 }
 
 const ROW_HEIGHT = 49;
+const BOTTOM_MARGIN = 16;
+// Busca todos de uma vez e pagina client-side — evita re-fetch ao trocar página
+// e estabiliza o LIMIT (sem dependência circular com o hook de paginação).
+const API_MAX_LIMIT = 500;
 
 export function AtendimentosClient() {
     const tableRef = useRef<HTMLDivElement>(null);
     const [filtros, setFiltros] = useState<Filtros>({ status: 'todos', dataInicio: '', dataFim: '', paciente: '' });
-    const [data, setData] = useState<Atendimento[]>([]);
+    const [allData, setAllData] = useState<Atendimento[]>([]);
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(true);
-    const [page, setPage] = useState(1);
+    const [displayPage, setDisplayPage] = useState(1);
 
-    const { itemsPerPage } = useDynamicPagination(tableRef, ROW_HEIGHT, 0);
-    const LIMIT = itemsPerPage;
+    const { itemsPerPage, availableHeight } = useDynamicPagination(tableRef, ROW_HEIGHT, 0);
 
+    // Re-fetch somente quando filtros mudam — não quando itemsPerPage muda
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
@@ -54,30 +55,50 @@ export function AtendimentosClient() {
             if (filtros.dataInicio) params.set('data_inicio', filtros.dataInicio);
             if (filtros.dataFim) params.set('data_fim', filtros.dataFim);
             if (filtros.paciente) params.set('paciente', filtros.paciente);
-            params.set('page', String(page));
-            params.set('limit', String(LIMIT));
+            params.set('page', '1');
+            params.set('limit', String(API_MAX_LIMIT));
 
             const res = await fetch(`/api/atendimentos?${params}`);
             const json = await res.json();
-            setData(json.data || []);
+            setAllData(json.data || []);
             setTotal(json.total || 0);
+            setDisplayPage(1);
         } catch {
-            setData([]);
+            setAllData([]);
         } finally {
             setLoading(false);
         }
-    }, [filtros, page, LIMIT]);
+    }, [filtros]);
 
     useEffect(() => { fetchData(); }, [fetchData]);
 
     function handleFilter(key: keyof Filtros, value: string) {
         setFiltros(prev => ({ ...prev, [key]: value }));
-        setPage(1);
     }
 
-    const totalPages = Math.ceil(total / LIMIT);
-    const totalPago = data.filter(a => a.pagamento_status === 'pago').reduce((s, a) => s + (a.valor_consulta || 0), 0);
-    const totalPendente = data.filter(a => a.pagamento_status === 'pendente').reduce((s, a) => s + (a.valor_consulta || 0), 0);
+    const perPage = Math.max(1, itemsPerPage);
+    const totalDisplayPages = Math.max(1, Math.ceil(allData.length / perPage));
+    // Garante que a página atual não ultrapasse o total ao redimensionar
+    const safePage = Math.min(displayPage, totalDisplayPages);
+
+    const paginatedData = useMemo(() => {
+        const start = (safePage - 1) * perPage;
+        return allData.slice(start, start + perPage);
+    }, [allData, safePage, perPage]);
+
+    const { totalPago, totalPendente } = useMemo(() => ({
+        totalPago: allData
+            .filter(a => a.pagamento_status === 'pago')
+            .reduce((s, a) => s + (a.valor_consulta || 0), 0),
+        totalPendente: allData
+            .filter(a => a.pagamento_status === 'pendente')
+            .reduce((s, a) => s + (a.valor_consulta || 0), 0),
+    }), [allData]);
+
+    // Constrange o card ao espaço disponível no viewport — impede scroll da página
+    const tableStyle: React.CSSProperties = availableHeight > 0
+        ? { maxHeight: availableHeight - BOTTOM_MARGIN }
+        : {};
 
     return (
         <div className="flex flex-col gap-4">
@@ -116,7 +137,7 @@ export function AtendimentosClient() {
             </div>
 
             {/* Summary */}
-            {!loading && data.length > 0 && (
+            {!loading && allData.length > 0 && (
                 <div className="flex gap-4 text-sm shrink-0">
                     <span className="text-foreground-secondary">
                         <strong className="text-foreground">{total}</strong> atendimentos
@@ -130,16 +151,16 @@ export function AtendimentosClient() {
                 </div>
             )}
 
-            {/* Table */}
-            <div ref={tableRef} className="medical-card overflow-hidden flex flex-col">
+            {/* Table — maxHeight limita ao viewport, overflow-hidden impede expansão */}
+            <div ref={tableRef} className="medical-card flex flex-col overflow-hidden" style={tableStyle}>
                 {loading ? (
                     <div className="p-8 text-center text-sm text-foreground-secondary">Carregando...</div>
-                ) : data.length === 0 ? (
+                ) : allData.length === 0 ? (
                     <div className="p-8 text-center text-sm text-foreground-secondary">Nenhum atendimento encontrado.</div>
                 ) : (
-                    <div className="overflow-x-auto flex-1">
+                    <div className="overflow-x-auto overflow-y-auto flex-1">
                         <table className="w-full text-sm">
-                            <thead className="border-b border-border bg-background-secondary">
+                            <thead className="border-b border-border bg-background-secondary sticky top-0">
                                 <tr>
                                     <th className="px-4 py-3 text-left text-label">Data</th>
                                     <th className="px-4 py-3 text-left text-label">Paciente</th>
@@ -149,15 +170,16 @@ export function AtendimentosClient() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border">
-                                {data.map(a => {
+                                {paginatedData.map(a => {
                                     const pg = getPagamentoBadge(a);
                                     const dataInicio = a.inicio ? new Date(a.inicio) : null;
-                                    const horaFim = a.fim ? new Date(a.fim).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : null;
+                                    const horaFim = a.fim
+                                        ? new Date(a.fim).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                                        : null;
                                     const emAndamento = a.status === 'em_atendimento';
 
                                     return (
                                         <tr key={a.id} className="hover:bg-background-secondary/50 transition-colors">
-                                            {/* Data + hora fim + ícone em andamento */}
                                             <td className="px-4 py-3 text-foreground-secondary">
                                                 <div className="flex items-center gap-2">
                                                     <span>{dataInicio ? dataInicio.toLocaleDateString('pt-BR') : '—'}</span>
@@ -172,7 +194,7 @@ export function AtendimentosClient() {
                                                 </div>
                                             </td>
                                             <td className="px-4 py-3 font-medium text-foreground">
-                                                {(a as any).paciente?.nome || '—'}
+                                                {a.paciente?.nome || '—'}
                                             </td>
                                             <td className="px-4 py-3 text-foreground-secondary capitalize">
                                                 {a.tipo_consulta || '—'}
@@ -193,12 +215,12 @@ export function AtendimentosClient() {
                     </div>
                 )}
 
-                {totalPages > 1 && (
-                    <div className="px-4 pb-4 shrink-0">
+                {!loading && totalDisplayPages > 1 && (
+                    <div className="px-4 pb-4 shrink-0 bg-white">
                         <PaginationControls
-                            currentPage={page}
-                            totalPages={totalPages}
-                            onPageChange={setPage}
+                            currentPage={safePage}
+                            totalPages={totalDisplayPages}
+                            onPageChange={setDisplayPage}
                         />
                     </div>
                 )}
