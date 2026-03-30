@@ -10,7 +10,7 @@ export default async function DocumentosPage() {
     const admin = getSupabaseAdmin();
     const { data: modelos } = await admin
         .from('documentos_modelos')
-        .select('id, titulo, tipo, descricao, created_at')
+        .select('id, titulo, tipo, conteudo, descricao, created_at')
         .order('titulo', { ascending: true });
 
     return (

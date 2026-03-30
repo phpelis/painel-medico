@@ -16,8 +16,6 @@
 - [x] Supabase: schema.md com tabelas reais — 2026-03-28
 - [x] Supabase: rls-policies.md documentado — 2026-03-28
 - [ ] Chatwoot: webhooks-received.md documentado (N/A — painel-medico não integra Chatwoot diretamente)
-- [ ] Woovi: charge-lifecycle.md documentado (painel-medico lê dados; API em painel-atendimento)
-- [ ] n8n: MCP tools configurados
 
 ---
 

@@ -15,7 +15,7 @@
 
 ## Project health
 - Features documented: 7/7 (auth, dashboard, atendimentos, documentos, perfil, empresa, certificado)
-- Files in project map: 58/58 (+ AppHeader, NavBar, SubNavBar, useDynamicPagination, PaginationControls, PaginatedListView, api/certificado DELETE, api/empresa/certificado DELETE)
+- Files in project map: 63/63 (+ 5 tabelas no MAP.md e colunas sincronizadas)
 - Design tokens documented: yes
 - Naming convention: camelCase (components PascalCase)
 - Organization: feature-based (components/) + layer-based (lib/, utils/, types/)

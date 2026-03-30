@@ -37,7 +37,10 @@ Roda na porta 3001. Auth via Supabase Auth (email/senha).
 GET    /api/medico/me                  → Dados médico autenticado
 PATCH  /api/medico/update              → Atualiza dados médico (inclui woovi_pix_key_tipo)
 GET    /api/atendimentos               → Lista com filtros (suporta limit=500 para fetch único)
-GET    /api/documentos                 → Modelos de documentos
+GET    /api/documentos                 → Lista modelos de documentos (inclui conteudo)
+POST   /api/documentos                 → Cria novo modelo de documento
+PUT    /api/documentos                 → Atualiza modelo de documento
+DELETE /api/documentos                 → Exclui modelo de documento (?id=uuid)
 GET    /api/certificado                → Certificado e-CPF ativo
 DELETE /api/certificado                → Soft delete certificado e-CPF (status → 'inativo')
 POST   /api/certificado/upload         → Upload arquivo .pfx e-CPF
@@ -76,7 +79,9 @@ src/components/
 │   └── CertificadoSection.tsx → Upload, status e exclusão (soft delete) de certificado
 │                                 Props: uploadEndpoint + deleteEndpoint (explícitos)
 ├── documentos/
-│   └── DocumentosGrid.tsx    → Grid de modelos com PaginatedListView
+│   └── DocumentosGrid.tsx    → Lista de modelos com filtros por tipo, edição inline via modal
+│                               CRUD completo: criar, editar (RichTextEditor), excluir com confirmação
+│                               Estado local atualizado sem reload após cada operação
 ├── ui/
 │   ├── PaginationControls.tsx → Botões Anterior/Próximo + "Página X de Y"
 │   └── PaginatedListView.tsx  → Lista genérica com paginação client-side + useDynamicPagination
@@ -84,6 +89,8 @@ src/components/
     ├── SectionCard.tsx       → Card container com título
     ├── ReadonlyField.tsx     → Campo somente-leitura (design system)
     ├── FeedbackBanner.tsx    → Banner de feedback (success/error)
+    ├── RichTextEditor.tsx    → Editor rich text (contentEditable) com toolbar: bold, italic, listas,
+    │                           alinhamento, undo/redo. Props: value, onChange, placeholder, disabled, actions
     └── StatusScreens.tsx     → Telas globais de carregamento (premium), erro e acesso restrito (iframe)
 ```
 
@@ -141,6 +148,12 @@ Tabelas usadas:
 - `atendimentos` — histórico de atendimentos (status, valor, pagamento_status, inicio, fim)
 - `certificados_digitais` — certificados e-CPF e empresa (soft delete via status='inativo')
 - `empresa_medico` — dados fiscais da empresa do médico (inclui endereço fiscal + ibge)
+- `documentos_modelos` — templates de documentos médicos (medico_id NULL = global)
+- `documentos_emitidos` — metadados dos PDFs gerados em atendimentos
+- `especialidades` — lookup de especialidades médicas (leitura pública)
+- `cid10` — lookup de códigos CID-10 (DATASUS, leitura pública)
+- `atendimentos_config` — configuração de preços e tipos de consulta ativos
+- `chatbot_sessions` — controle de estado do chatbot Chatwoot (conversas ativas)
 
 ## Integrações externas
 

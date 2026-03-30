@@ -1,7 +1,7 @@
 # Supabase Schema — doutortaon
 
 > Projeto: zsmwpslhainlhbssejmt (sa-east-1)
-> Última varredura: 2026-03-28
+> Última varredura: 2026-03-30
 > Banco: PostgreSQL 17.6
 
 ---

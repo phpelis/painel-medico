@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Search, Filter, Clock } from 'lucide-react';
+import { Search, Clock } from 'lucide-react';
 import type { Atendimento } from '@/types/database';
 import { PAGAMENTO_BADGES } from '@/utils/constants';
 import { PaginationControls } from '@/components/ui/PaginationControls';
@@ -97,17 +97,13 @@ export function AtendimentosClient() {
 
     // Constrange o card ao espaço disponível no viewport — impede scroll da página
     const tableStyle: React.CSSProperties = availableHeight > 0
-        ? { maxHeight: availableHeight - BOTTOM_MARGIN }
+        ? { maxHeight: availableHeight }
         : {};
 
     return (
         <div className="flex flex-col gap-4">
             {/* Filtros */}
-            <div className="medical-card p-4 shrink-0">
-                <div className="flex items-center gap-2 mb-3 text-xs font-semibold text-foreground-secondary uppercase tracking-wide">
-                    <Filter size={13} />
-                    Filtros
-                </div>
+            <div className="medical-card p-3 shrink-0">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     <div className="relative">
                         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-secondary pointer-events-none" />
