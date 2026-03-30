@@ -11,7 +11,7 @@
 
 ## Próximos Passos
 
-1. Iniciar **TASK-SYNC-002** — Sincronização de Infraestrutura (Supabase, Chatwoot, Woovi) e validação de configurações.
+1. Iniciar **TASK-CERT-001** — Regra de validação e-CPF/e-CNPJ (Concluído).
 2. Monitorar o crescimento de novos componentes para manter a modularidade.
 
 

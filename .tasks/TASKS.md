@@ -21,6 +21,17 @@
 
 ## Active tasks
 
+### TASK-CERT-001 — Regra de validação e-CPF/e-CNPJ
+- Status: IN PROGRESS
+- Priority: HIGH
+- Subtasks:
+  - [ ] TASK-CERT-001-01 — Atualizar `parseService.ts` com detecção de e-CNPJ
+  - [ ] TASK-CERT-001-02 — Implementar validação nas rotas de API (médico e empresa)
+  - [ ] TASK-CERT-001-03 — Adicionar validação em tempo real no `CertificadoSection.tsx`
+  - [ ] TASK-CERT-001-04 — Validar fluxos de erro e avisos na UI
+
+---
+
 ### TASK-ALIGN-001 — Refatorar componentes extensos
 - Status: COMPLETED
 - Priority: MEDIUM

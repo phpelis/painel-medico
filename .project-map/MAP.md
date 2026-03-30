@@ -44,6 +44,7 @@ DELETE /api/documentos                 → Exclui modelo de documento (?id=uuid)
 GET    /api/certificado                → Certificado e-CPF ativo
 DELETE /api/certificado                → Soft delete certificado e-CPF (status → 'inativo')
 POST   /api/certificado/upload         → Upload arquivo .pfx e-CPF
+POST   /api/certificado/verify         → Pré-verificação de tipo/senha (e-CPF vs e-CNPJ)
 GET    /api/empresa                    → Dados empresa
 POST   /api/empresa                    → Cria empresa
 PATCH  /api/empresa                    → Atualiza empresa
@@ -81,6 +82,7 @@ src/components/
 │   └── ConfigNotasForm.tsx       → Config emissão notas fiscais
 ├── certificado/
 │   └── CertificadoSection.tsx → Upload, status e exclusão (soft delete) de certificado
+│                                 Validação em tempo real (e-CPF vs e-CNPJ) + bloqueio
 │                                 Props: uploadEndpoint + deleteEndpoint (explícitos)
 ├── documentos/
 │   ├── DocumentosGrid.tsx        → Container principal de modelos
@@ -131,7 +133,8 @@ src/lib/
 ├── encryption.ts     → EncryptionService (AES-256 para woovi_pix_key)
 ├── authSession.ts    → sessionService (Criptografia e cookies de sessão customizados para fallback)
 └── certificate/
-    └── parseService.ts → parsePfxCertificate(buffer, password) → { dados_certificado, validTo }
+    └── parseService.ts → parsePfxCertificate(buffer, password) → { dados_certificado, validTo, tipo }
+                          Suporta e-CPF (OID 2.16.76.1.3.1) e e-CNPJ (OID 2.16.76.1.3.3)
 
 src/hooks/
 ├── useDynamicPagination.ts → Calcula itemsPerPage e availableHeight via getBoundingClientRect()

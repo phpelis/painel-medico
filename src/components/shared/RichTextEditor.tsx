@@ -72,7 +72,7 @@ export function RichTextEditor({
     };
 
     return (
-        <div className={`relative flex flex-col h-full border rounded-xl overflow-hidden bg-white transition-all ${isFocused ? 'border-blue-500 ring-1 ring-blue-500/20' : 'border-slate-300'} ${className}`}>
+        <div className={`relative flex flex-col h-full border rounded-xl overflow-hidden bg-white transition-all ${isFocused ? 'border-primary ring-2 ring-primary/20' : 'border-border'} ${className}`}>
             {/* Toolbar */}
             <div className="flex items-center justify-between p-2 border-b border-slate-100 bg-slate-50 min-h-[44px]">
                 <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">

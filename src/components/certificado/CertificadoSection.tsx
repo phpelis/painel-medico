@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Shield, ShieldAlert, ShieldCheck, Trash2, Upload } from 'lucide-react';
 import { SectionCard } from '@/components/shared/SectionCard';
 import { FeedbackBanner } from '@/components/shared/FeedbackBanner';
@@ -23,8 +23,54 @@ export function CertificadoSection({ cert, tipo, uploadEndpoint, deleteEndpoint,
     const [uploading, setUploading] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [confirmDelete, setConfirmDelete] = useState(false);
-    const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
+    const [feedback, setFeedback] = useState<{ type: 'success' | 'error' | 'warning'; msg: string } | null>(null);
     const [currentCert, setCurrentCert] = useState(cert);
+    const [verifying, setVerifying] = useState(false);
+    const [detectedType, setDetectedType] = useState<'e-cpf' | 'e-cnpj' | null>(null);
+
+    // Pré-verificação de tipo em tempo real
+    useEffect(() => {
+        let timer: NodeJS.Timeout;
+        if (file && password && password.length >= 4) {
+            timer = setTimeout(async () => {
+                setVerifying(true);
+                setFeedback(null);
+                try {
+                    const fd = new FormData();
+                    fd.append('pfxFile', file);
+                    fd.append('password', password);
+                    const res = await fetch('/api/certificado/verify', { method: 'POST', body: fd });
+                    const json = await res.json();
+                    
+                    if (res.ok && json.tipo) {
+                        setDetectedType(json.tipo);
+                        if (json.tipo !== tipo) {
+                            setFeedback({ 
+                                type: 'warning', 
+                                msg: `⚠️ ${json.tipo.toUpperCase()} detectado. Para este perfil (${tipo === 'e-cpf' ? 'Médico' : 'Empresa'}), é necessário um certificado ${tipo.toUpperCase()}.` 
+                            });
+                        } else {
+                            setFeedback({ type: 'success', msg: `✅ ${json.tipo.toUpperCase()} identificado e pronto para envio.` });
+                        }
+                    } else if (!res.ok) {
+                        // Limpa estados se a senha estiver errada ou arquivo inválido
+                        setDetectedType(null);
+                        if (json.error?.message?.includes('Senha')) {
+                            setFeedback({ type: 'error', msg: 'Senha incorreta para este arquivo.' });
+                        }
+                    }
+                } catch (err) {
+                    console.error('Erro na pré-verificação:', err);
+                } finally {
+                    setVerifying(false);
+                }
+            }, 600);
+        } else {
+            setDetectedType(null);
+            setFeedback(null);
+        }
+        return () => clearTimeout(timer);
+    }, [file, password, tipo]);
 
     async function handleDelete() {
         if (!currentCert?.id) return;
@@ -50,10 +96,11 @@ export function CertificadoSection({ cert, tipo, uploadEndpoint, deleteEndpoint,
 
     const certDias = currentCert?.validade_ate ? daysUntil(currentCert.validade_ate) : null;
     const isExpiring = certDias !== null && certDias <= 30;
+    const isMismatched = !!(detectedType && detectedType !== tipo);
 
     async function handleUpload(e: React.FormEvent) {
         e.preventDefault();
-        if (!file || !password) return;
+        if (!file || !password || isMismatched) return;
         setUploading(true);
         setFeedback(null);
 
@@ -75,6 +122,7 @@ export function CertificadoSection({ cert, tipo, uploadEndpoint, deleteEndpoint,
             setFeedback({ type: 'success', msg: 'Certificado cadastrado com sucesso!' });
             setFile(null);
             setPassword('');
+            setDetectedType(null);
         } catch (err: any) {
             setFeedback({ type: 'error', msg: err.message || 'Erro ao processar certificado.' });
         } finally {
@@ -156,7 +204,11 @@ export function CertificadoSection({ cert, tipo, uploadEndpoint, deleteEndpoint,
                         <input
                             type="file"
                             accept=".pfx,.p12"
-                            onChange={e => setFile(e.target.files?.[0] || null)}
+                            onChange={e => {
+                                setFile(e.target.files?.[0] || null);
+                                setDetectedType(null);
+                                setFeedback(null);
+                            }}
                             className="w-full text-sm text-foreground-secondary file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-hover cursor-pointer"
                         />
                         {file && <p className="text-xs text-foreground-secondary mt-1">{file.name}</p>}
@@ -174,12 +226,23 @@ export function CertificadoSection({ cert, tipo, uploadEndpoint, deleteEndpoint,
                         />
                     </div>
 
-                    {feedback && <FeedbackBanner type={feedback.type} message={feedback.msg} />}
+                    {verifying && (
+                        <div className="flex items-center gap-2 text-xs text-foreground-secondary animate-pulse px-1">
+                            <Upload size={12} className="animate-bounce" /> Analisando certificado...
+                        </div>
+                    )}
+
+                    {feedback && (
+                        <FeedbackBanner 
+                            type={feedback.type === 'warning' ? 'error' : feedback.type} 
+                            message={feedback.msg} 
+                        />
+                    )}
 
                     <button
                         type="submit"
-                        disabled={!file || !password || uploading}
-                        className="action-btn-primary text-sm"
+                        disabled={!file || !password || uploading || verifying || isMismatched}
+                        className={`action-btn-primary text-sm ${isMismatched ? 'opacity-50 cursor-not-allowed grayscale' : ''}`}
                     >
                         <Upload size={15} />
                         {uploading ? 'Processando...' : 'Enviar certificado'}

@@ -95,14 +95,12 @@ export function DocumentEditModal({
 
                     <div className="flex-1 flex flex-col min-h-[400px]">
                         <label className="text-label-strong block mb-1.5 font-bold uppercase tracking-wider text-[10px]">Conteúdo do Documento *</label>
-                        <div className="flex-1 border border-border rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 transition-all">
-                            <RichTextEditor
-                                value={form.conteudo}
-                                onChange={v => setForm(p => ({ ...p, conteudo: v }))}
-                                placeholder="Comece a digitar o conteúdo do seu modelo aqui..."
-                                className="h-full min-h-[350px]"
-                            />
-                        </div>
+                        <RichTextEditor
+                            value={form.conteudo}
+                            onChange={v => setForm(p => ({ ...p, conteudo: v }))}
+                            placeholder="Comece a digitar o conteúdo do seu modelo aqui..."
+                            className="flex-1 min-h-[400px]"
+                        />
                     </div>
                 </div>
 

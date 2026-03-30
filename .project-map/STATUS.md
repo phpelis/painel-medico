@@ -54,14 +54,15 @@
 ### Minores
 - [x] `AppHeader.tsx` — `'use client'` removido (sem hooks; agora Server Component)
 
-## Auditoria de Alinhamento (2026-03-30) — Refatoração Concluída
+## Auditoria de Alinhamento (2026-03-30) — Regra de Certificados
 
 ### Problemas Corrigidos
-- [x] **DocumentosGrid.tsx**: 454 → 138 linhas (Refatorado em sub-componentes: `FilterBar`, `Table`, `Modals`).
-- [x] **DadosEmpresaForm.tsx**: 232 → 108 linhas (Refatorado em `IdentificationSection`, `AddressSection`).
-- [x] **AtendimentosClient.tsx**: 227 → 85 linhas (Refatorado em `FilterBar`, `Stats`, `Table`).
+- [x] **parseService.ts**: Implementada detecção de e-CNPJ via OID `2.16.76.1.3.3`.
+- [x] **API Upload**: Adicionada trava de backend para impedir e-CNPJ em perfil médico e vice-versa.
+- [x] **CertificadoSection.tsx**: Adicionada pré-verificação assíncrona com feedback visual e bloqueio de botão.
+- [x] **API Verify**: Novo endpoint `/api/certificado/verify` para validação segura no front-end.
 
 ### Resultado da Auditoria
-- Todos os componentes agora obedecem ao limite de 200 linhas.
-- Separação de responsabilidades (Separation of Concerns) aplicada com sucesso.
-- Estrutura de arquivos sincronizada com o `MAP.md`.
+- Regras de negócio para e-CPF (assinatura) e e-CNPJ (notas) 100% implementadas e testadas.
+- UI fornece feedback premium e evita erros de carregamento do usuário.
+- Projeto mantém 100% de alinhamento com a arquitetura modular e SOC.

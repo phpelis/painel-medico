@@ -18,14 +18,25 @@ export async function POST(request: NextRequest) {
 
         const pfxBuffer = await pfxFile.arrayBuffer();
 
-        let dados_certificado: { commonName: string; cpf: string; serialNumber: string; issuer: string; validFrom: string; validTo: string };
+        let dados_certificado: any;
         let validTo: string;
+        let tipoDetectado: string;
 
         try {
             const parsed = await parsePfxCertificate(pfxBuffer, password);
             dados_certificado = parsed.dados_certificado;
             validTo = parsed.validTo;
+            tipoDetectado = parsed.tipo;
+
+            // Validação de Mismatch de Tipo
+            if (tipoDetectado !== tipo) {
+                const msg = tipo === 'e-cpf' 
+                    ? 'Este perfil (Médico) aceita apenas certificados e-CPF para assinaturas. O arquivo enviado é um e-CNPJ.'
+                    : 'Este perfil (Empresa) aceita apenas certificados e-CNPJ para emissão de notas. O arquivo enviado é um e-CPF.';
+                throw new ValidationError(msg, 'pfxFile');
+            }
         } catch (e: any) {
+            if (e instanceof ValidationError) throw e;
             if (e.message?.includes('Invalid password') || e.message?.includes('mac verify')) {
                 throw new ValidationError('Senha do certificado incorreta', 'password');
             }
