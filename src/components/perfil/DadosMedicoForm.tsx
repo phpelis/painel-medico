@@ -30,6 +30,7 @@ export function DadosMedicoForm({ medico }: Props) {
         rqe_primaria: medico.rqe_primaria || '',
         rqe_secundaria: medico.rqe_secundaria || '',
         woovi_pix_key: medico.woovi_pix_key || '',
+        woovi_pix_key_tipo: (medico as any).woovi_pix_key_tipo || '',
     });
 
     const [editMode, setEditMode] = useState(false);
@@ -91,7 +92,7 @@ export function DadosMedicoForm({ medico }: Props) {
     );
 
     return (
-        <div className="max-w-2xl space-y-6">
+        <div className="max-w-2xl mx-auto space-y-6">
             {/* Ações */}
             <div className="flex items-center justify-between">
                 <h2 className="text-sm font-semibold text-foreground">Informações do Médico</h2>
@@ -142,6 +143,24 @@ export function DadosMedicoForm({ medico }: Props) {
 
             <SectionCard title="Dados Financeiros">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label htmlFor="pix_tipo" className="text-label block mb-1.5">Tipo da chave Pix</label>
+                        {editMode ? (
+                            <select
+                                id="pix_tipo"
+                                value={form.woovi_pix_key_tipo}
+                                onChange={e => handleChange('woovi_pix_key_tipo', e.target.value)}
+                                className="medical-input"
+                            >
+                                <option value="">Selecione o tipo</option>
+                                <option value="cpf">CPF</option>
+                                <option value="cnpj">CNPJ</option>
+                                <option value="email">E-mail</option>
+                                <option value="telefone">Telefone</option>
+                                <option value="aleatoria">Chave Aleatória</option>
+                            </select>
+                        ) : <ReadonlyField value={form.woovi_pix_key_tipo} />}
+                    </div>
                     {field('Chave Pix (Woovi)', 'pix', form.woovi_pix_key, v => handleChange('woovi_pix_key', v))}
                 </div>
             </SectionCard>

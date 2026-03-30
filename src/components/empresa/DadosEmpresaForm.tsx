@@ -43,6 +43,7 @@ export function DadosEmpresaForm({ empresa }: Props) {
     const [editMode, setEditMode] = useState(!empresa);
     const [saving, setSaving] = useState(false);
     const [searching, setSearching] = useState(false);
+    const [lookingUpCep, setLookingUpCep] = useState(false);
     const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
     const isNew = !empresa;
 
@@ -69,6 +70,29 @@ export function DadosEmpresaForm({ empresa }: Props) {
             setFeedback({ type: 'error', msg: err.message });
         } finally {
             setSearching(false);
+        }
+    }
+
+    async function lookupCep(rawCep: string) {
+        const digits = rawCep.replace(/\D/g, '');
+        if (digits.length !== 8) return;
+        setLookingUpCep(true);
+        try {
+            const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+            const data = await res.json();
+            if (data.erro) return;
+            setForm(prev => ({
+                ...prev,
+                endereco_fiscal_logradouro: data.logradouro || prev.endereco_fiscal_logradouro,
+                endereco_fiscal_bairro: data.bairro || prev.endereco_fiscal_bairro,
+                endereco_fiscal_cidade: data.localidade || prev.endereco_fiscal_cidade,
+                endereco_fiscal_uf: data.uf || prev.endereco_fiscal_uf,
+                endereco_fiscal_ibge: data.ibge || prev.endereco_fiscal_ibge,
+            }));
+        } catch {
+            // silently ignore CEP lookup errors
+        } finally {
+            setLookingUpCep(false);
         }
     }
 
@@ -111,7 +135,7 @@ export function DadosEmpresaForm({ empresa }: Props) {
     );
 
     return (
-        <div className="max-w-2xl space-y-6">
+        <div className="max-w-2xl mx-auto space-y-6">
             <div className="flex items-center justify-between">
                 <h2 className="text-sm font-semibold text-foreground">Empresa</h2>
                 <div className="flex gap-2">
@@ -169,7 +193,22 @@ export function DadosEmpresaForm({ empresa }: Props) {
 
             <SectionCard title="Endereço Fiscal">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {inp('CEP', 'endereco_fiscal_cep', maskCEP, true)}
+                    <div>
+                        <label className="text-label block mb-1.5">CEP {lookingUpCep && <span className="text-foreground-secondary font-normal">(buscando...)</span>}</label>
+                        {editMode ? (
+                            <input
+                                className="medical-input"
+                                value={maskCEP(form.endereco_fiscal_cep)}
+                                onChange={e => {
+                                    const raw = unmask(e.target.value);
+                                    set('endereco_fiscal_cep', raw);
+                                    if (raw.length === 8) lookupCep(raw);
+                                }}
+                                onBlur={() => lookupCep(form.endereco_fiscal_cep)}
+                                placeholder="00000-000"
+                            />
+                        ) : <ReadonlyField value={maskCEP(form.endereco_fiscal_cep)} />}
+                    </div>
                     {inp('Logradouro', 'endereco_fiscal_logradouro')}
                     {inp('Número', 'endereco_fiscal_numero')}
                     {inp('Complemento', 'endereco_fiscal_complemento')}
