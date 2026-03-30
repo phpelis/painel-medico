@@ -23,21 +23,20 @@ export function AppHeader({ nomeMedico, crm, ufCrm, mediaAvaliacao }: AppHeaderP
 
                     {nomeMedico ? (
                         <div className="flex flex-col gap-1 min-w-0">
-                            <h2 className="text-sm font-bold text-foreground truncate">
-                                Dr(a). {nomeMedico}
-                            </h2>
-                            <div className="flex items-center gap-3 flex-wrap text-metadata text-foreground-secondary">
+                            <div className="flex items-center gap-2">
+                                <h2 className="text-sm font-bold text-foreground truncate">
+                                    Dr(a). {nomeMedico}
+                                </h2>
                                 {(mediaAvaliacao !== undefined && mediaAvaliacao > 0) && (
-                                    <>
-                                        <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-warning-light border border-(--warning)/20">
-                                            <Star className="w-3 h-3 fill-current text-(--warning)" />
-                                            <span className="text-[10px] font-bold text-(--warning)">
-                                                {mediaAvaliacao.toFixed(1)}
-                                            </span>
-                                        </div>
-                                        <span className="separator-line" />
-                                    </>
+                                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-warning-light border border-(--warning)/20 shrink-0">
+                                        <Star className="w-3 h-3 fill-current text-(--warning)" />
+                                        <span className="text-[10px] font-bold text-(--warning)">
+                                            {mediaAvaliacao.toFixed(1)}
+                                        </span>
+                                    </div>
                                 )}
+                            </div>
+                            <div className="flex items-center text-metadata text-foreground-secondary">
                                 <span className="text-[10px] font-semibold uppercase tracking-wider">
                                     CRM {crm ? maskCRM_RQE(crm) : '---'}/{ufCrm || 'UF'}
                                 </span>
