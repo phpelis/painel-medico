@@ -3,7 +3,7 @@
 > Status: ALIGNED
 > Aligned on: 2026-03-28
 > Aligned by: antigravity_cloud_code_skill_kit
-> Last verified: 2026-03-28
+> Last verified: 2026-03-30
 
 ## Alignment checklist
 - [x] Task system created (.tasks/)
@@ -15,7 +15,7 @@
 
 ## Project health
 - Features documented: 7/7 (auth, dashboard, atendimentos, documentos, perfil, empresa, certificado)
-- Files in project map: 51/51
+- Files in project map: 58/58 (+ AppHeader, NavBar, SubNavBar, useDynamicPagination, PaginationControls, PaginatedListView, api/certificado DELETE, api/empresa/certificado DELETE)
 - Design tokens documented: yes
 - Naming convention: camelCase (components PascalCase)
 - Organization: feature-based (components/) + layer-based (lib/, utils/, types/)
@@ -39,3 +39,17 @@
 ### Minores
 - [x] `X-Frame-Options` → `DENY` em `middleware.ts`
 - [x] `NUVEM_FISCAL_*` vars desnecessárias removidas de `lib/env.ts`
+
+## Code review — issues corrigidos (2026-03-30)
+
+### Críticos
+- [x] `database.ts` — `woovi_pix_key_tipo` adicionado ao tipo `Medico` (remove `as any`)
+
+### Importantes
+- [x] `CertificadoSection.tsx` — `deleteEndpoint` como prop explícita (remove string fragile replace)
+- [x] `DadosMedicoForm.tsx` — `PIX_TIPO_OPTIONS` constante + uso do helper `selectField()` (DRY)
+- [x] `AtendimentosClient.tsx` — `totalPago`/`totalPendente` em `useMemo`; `BOTTOM_MARGIN` const
+- [x] `AtendimentosClient.tsx` — `(a as any).paciente` → `a.paciente` (já tipado)
+
+### Minores
+- [x] `AppHeader.tsx` — `'use client'` removido (sem hooks; agora Server Component)

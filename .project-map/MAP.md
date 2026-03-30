@@ -34,18 +34,22 @@ Roda na porta 3001. Auth via Supabase Auth (email/senha).
 ## API Routes
 
 ```
-GET  /api/medico/me                    → Dados médico autenticado
-PATCH /api/medico/update               → Atualiza dados médico
-GET  /api/atendimentos                 → Lista com filtros e paginação
-GET  /api/documentos                   → Modelos de documentos
-GET/POST /api/certificado              → Certificado digital
-POST /api/certificado/upload           → Upload arquivo .pfx
-GET/POST /api/empresa                  → Dados empresa
-GET  /api/empresa/buscar-cnpj          → Busca dados por CNPJ
-GET/POST /api/empresa/certificado      → Certificado da empresa
-POST /api/empresa/certificado/upload   → Upload certificado empresa
-POST /api/auth/logout                  → Logout
-POST /api/auth/chatwoot                → Endpoint BFF para validar Agente (Email/ID) e criar Cookie de Sessão
+GET    /api/medico/me                  → Dados médico autenticado
+PATCH  /api/medico/update              → Atualiza dados médico (inclui woovi_pix_key_tipo)
+GET    /api/atendimentos               → Lista com filtros (suporta limit=500 para fetch único)
+GET    /api/documentos                 → Modelos de documentos
+GET    /api/certificado                → Certificado e-CPF ativo
+DELETE /api/certificado                → Soft delete certificado e-CPF (status → 'inativo')
+POST   /api/certificado/upload         → Upload arquivo .pfx e-CPF
+GET    /api/empresa                    → Dados empresa
+POST   /api/empresa                    → Cria empresa
+PATCH  /api/empresa                    → Atualiza empresa
+GET    /api/empresa/buscar-cnpj        → Busca dados por CNPJ
+GET    /api/empresa/certificado        → Certificado e-CNPJ ativo
+DELETE /api/empresa/certificado        → Soft delete certificado e-CNPJ (status → 'inativo')
+POST   /api/empresa/certificado/upload → Upload certificado e-CNPJ
+POST   /api/auth/logout                → Logout
+POST   /api/auth/chatwoot              → BFF: valida Agente e cria cookie de sessão Chatwoot
 ```
 
 ## Componentes principais
@@ -53,22 +57,29 @@ POST /api/auth/chatwoot                → Endpoint BFF para validar Agente (Ema
 ```
 src/components/
 ├── layout/
-│   ├── Sidebar.tsx          → Navegação lateral com submenus
-│   └── TopBar.tsx           → Header com título e subtítulo
+│   ├── AppHeader.tsx        → Header global: avatar esteto, Dr(a). Nome + nota + CRM (Server Component)
+│   ├── NavBar.tsx           → 5 tabs horizontais h-14 com indicador ativo (bottom border)
+│   └── SubNavBar.tsx        → Sub-tabs h-10 visíveis apenas em /perfil e /empresa
 ├── dashboard/
-│   └── DashboardOverview.tsx → Cards stat + tabela atendimentos recentes
+│   └── DashboardOverview.tsx → 3 cards stat (sem avaliação — movida para header)
 ├── atendimentos/
-│   └── AtendimentosClient.tsx → Tabela filtros + paginação
+│   └── AtendimentosClient.tsx → Tabela filtros + paginação client-side (fetch único limit=500)
+│                                 maxHeight via useDynamicPagination, sem re-fetch por página
 ├── perfil/
 │   ├── DadosMedicoForm.tsx   → Form dados pessoais/profissionais/financeiros
-│   └── EnderecoForm.tsx      → Form endereço residencial
+│   │                           Inclui seletor de tipo de chave Pix (woovi_pix_key_tipo)
+│   └── EnderecoForm.tsx      → Form endereço residencial com lookup ViaCEP automático
 ├── empresa/
-│   ├── DadosEmpresaForm.tsx  → Form CNPJ + dados fiscais
+│   ├── DadosEmpresaForm.tsx  → Form CNPJ + dados fiscais com lookup ViaCEP no CEP
 │   └── ConfigNotasForm.tsx   → Config emissão notas fiscais
 ├── certificado/
-│   └── CertificadoSection.tsx → Upload e status certificado
+│   └── CertificadoSection.tsx → Upload, status e exclusão (soft delete) de certificado
+│                                 Props: uploadEndpoint + deleteEndpoint (explícitos)
 ├── documentos/
-│   └── DocumentosGrid.tsx    → Grid de modelos
+│   └── DocumentosGrid.tsx    → Grid de modelos com PaginatedListView
+├── ui/
+│   ├── PaginationControls.tsx → Botões Anterior/Próximo + "Página X de Y"
+│   └── PaginatedListView.tsx  → Lista genérica com paginação client-side + useDynamicPagination
 └── shared/
     ├── SectionCard.tsx       → Card container com título
     ├── ReadonlyField.tsx     → Campo somente-leitura (design system)
@@ -108,6 +119,9 @@ src/lib/
     └── parseService.ts → parsePfxCertificate(buffer, password) → { dados_certificado, validTo }
 
 src/hooks/
+├── useDynamicPagination.ts → Calcula itemsPerPage e availableHeight via getBoundingClientRect()
+│                             ResizeObserver + window resize + 300ms debounce
+│                             Evita dependência circular com clientHeight
 └── useChatwootHandshake.ts → Hook principal (postMessage) do Handshake do iframe do Chatwoot
 ```
 
@@ -122,8 +136,15 @@ src/app/dashboard/
 ## Banco de dados (Supabase)
 
 Tabelas usadas:
-- `medicos` — dados do médico (nome, crm, especialidade, woovi_pix_key, etc.)
+- `medicos` — dados do médico (nome, crm, especialidade, woovi_pix_key, woovi_pix_key_tipo, etc.)
 - `pacientes` — dados dos pacientes
-- `atendimentos` — histórico de atendimentos (status, valor, pagamento_status)
-- `certificados_digitais` — certificados e-CPF e empresa
-- `empresa_medico` — dados fiscais da empresa do médico
+- `atendimentos` — histórico de atendimentos (status, valor, pagamento_status, inicio, fim)
+- `certificados_digitais` — certificados e-CPF e empresa (soft delete via status='inativo')
+- `empresa_medico` — dados fiscais da empresa do médico (inclui endereço fiscal + ibge)
+
+## Integrações externas
+
+- **ViaCEP** (`https://viacep.com.br/ws/{cep}/json/`) — chamada direta do cliente
+  - Usado em `EnderecoForm.tsx` (onBlur no campo CEP) e `DadosEmpresaForm.tsx` (onChange + onBlur)
+  - Preenche: logradouro, bairro, cidade (localidade), uf, ibge
+  - Falha silenciosa (catch vazio) — enriquecimento opcional
