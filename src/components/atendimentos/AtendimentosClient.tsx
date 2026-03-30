@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Search, Filter } from 'lucide-react';
+import { Search, Filter, Clock } from 'lucide-react';
 import type { Atendimento } from '@/types/database';
-import { PAGAMENTO_BADGES, STATUS_ATENDIMENTO_BADGES } from '@/utils/constants';
+import { PAGAMENTO_BADGES } from '@/utils/constants';
 import { PaginationControls } from '@/components/ui/PaginationControls';
 import { useDynamicPagination } from '@/hooks/useDynamicPagination';
 
@@ -21,7 +21,18 @@ const STATUS_OPTIONS = [
     { value: 'em_atendimento', label: 'Em atendimento' },
 ];
 
-// Altura de cada linha da tabela (thead=45 + tr=49)
+// Badge de pagamento com tratamento especial para consultas gratuitas (valor = 0)
+const BADGE_GRATUITO = { label: 'Gratuito', cls: 'status-badge completed' };
+const BADGE_CANCELADO_ATEND = { label: 'Desconsiderado', cls: 'status-badge bg-background-secondary text-foreground-secondary border border-border' };
+
+function getPagamentoBadge(a: Atendimento) {
+    // Atendimento cancelado: pagamento desconsiderado independente do valor
+    if (a.status === 'cancelado') return BADGE_CANCELADO_ATEND;
+    // Valor zero em atendimento não-cancelado = consulta gratuita
+    if (a.valor_consulta === 0) return BADGE_GRATUITO;
+    return PAGAMENTO_BADGES[a.pagamento_status || 'pendente'] || PAGAMENTO_BADGES.pendente;
+}
+
 const ROW_HEIGHT = 49;
 
 export function AtendimentosClient() {
@@ -119,7 +130,7 @@ export function AtendimentosClient() {
                 </div>
             )}
 
-            {/* Table — ref para cálculo de altura disponível */}
+            {/* Table */}
             <div ref={tableRef} className="medical-card overflow-hidden flex flex-col">
                 {loading ? (
                     <div className="p-8 text-center text-sm text-foreground-secondary">Carregando...</div>
@@ -134,18 +145,31 @@ export function AtendimentosClient() {
                                     <th className="px-4 py-3 text-left text-label">Paciente</th>
                                     <th className="px-4 py-3 text-left text-label">Tipo</th>
                                     <th className="px-4 py-3 text-right text-label">Valor</th>
-                                    <th className="px-4 py-3 text-center text-label">Status</th>
                                     <th className="px-4 py-3 text-center text-label">Pagamento</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border">
                                 {data.map(a => {
-                                    const status = STATUS_ATENDIMENTO_BADGES[a.status] || STATUS_ATENDIMENTO_BADGES.pendente;
-                                    const pg = PAGAMENTO_BADGES[a.pagamento_status || 'pendente'] || PAGAMENTO_BADGES.pendente;
+                                    const pg = getPagamentoBadge(a);
+                                    const dataInicio = a.inicio ? new Date(a.inicio) : null;
+                                    const horaFim = a.fim ? new Date(a.fim).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : null;
+                                    const emAndamento = a.status === 'em_atendimento';
+
                                     return (
                                         <tr key={a.id} className="hover:bg-background-secondary/50 transition-colors">
+                                            {/* Data + hora fim + ícone em andamento */}
                                             <td className="px-4 py-3 text-foreground-secondary">
-                                                {a.inicio ? new Date(a.inicio).toLocaleDateString('pt-BR') : '—'}
+                                                <div className="flex items-center gap-2">
+                                                    <span>{dataInicio ? dataInicio.toLocaleDateString('pt-BR') : '—'}</span>
+                                                    {horaFim && (
+                                                        <span className="text-[10px] font-semibold text-foreground-secondary bg-background-secondary px-1.5 py-0.5 rounded">
+                                                            {horaFim}
+                                                        </span>
+                                                    )}
+                                                    {emAndamento && (
+                                                        <Clock size={13} className="text-warning shrink-0" />
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="px-4 py-3 font-medium text-foreground">
                                                 {(a as any).paciente?.nome || '—'}
@@ -154,10 +178,9 @@ export function AtendimentosClient() {
                                                 {a.tipo_consulta || '—'}
                                             </td>
                                             <td className="px-4 py-3 text-right font-semibold text-foreground">
-                                                {a.valor_consulta ? `R$ ${a.valor_consulta.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '—'}
-                                            </td>
-                                            <td className="px-4 py-3 text-center">
-                                                <span className={status.cls}>{status.label}</span>
+                                                {a.valor_consulta != null
+                                                    ? `R$ ${a.valor_consulta.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                                                    : '—'}
                                             </td>
                                             <td className="px-4 py-3 text-center">
                                                 <span className={pg.cls}>{pg.label}</span>
