@@ -48,7 +48,7 @@ export function NavBar() {
     const pathname = usePathname();
 
     return (
-        <nav className="shrink-0 bg-white border-b border-border h-12 flex items-center px-6">
+        <nav className="shrink-0 bg-white border-b border-border h-14 flex items-center px-6">
             <div className="flex items-center gap-1">
                 {navItems.map((item) => {
                     const isActive = item.exact
