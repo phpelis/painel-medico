@@ -5,17 +5,13 @@
 
 ## Contexto da última sessão
 
-- Sincronização completa da documentação (.project-map/ e schema.md)
-- Saúde do projeto atualizada (64/64 arquivos no mapa)
-- Inserção do `RichTextEditor.tsx` em `shared/` e uso em `DocumentosGrid.tsx`
-- Melhoria de UI: Redução de 1 item e ajuste de scroll em listas dinâmicas (Atendimentos)
-- Modernização: Grade de Documentos convertida para Tabela Dinâmica com filtros em lista e nova data/hora.
-- Comportamento: Modal de edição agora protegido contra cliques externos acidentais.
-- Commit e Push pendentes para nova alteração.
+- **Refatoração Estrutural Completa**: `DocumentosGrid.tsx`, `DadosEmpresaForm.tsx` e `AtendimentosClient.tsx` agora abaixo de 150 linhas em média.
+- **Sincronização de Documentação**: `MAP.md` e `STATUS.md` atualizados com a nova estrutura modular de componentes.
+- **Alinhamento Final**: Todos os arquivos verificados contra os padrões de arquitetura (DRY, SOC, 200-line rule).
 
-## Para retomar
+## Próximos Passos
 
-1. Aguarde novas solicitações de desenvolvimento ou melhorias de UI.
-2. Monitorar o estado da branch `main` após o push.
+1. Iniciar **TASK-SYNC-002** — Sincronização de Infraestrutura (Supabase, Chatwoot, Woovi) e validação de configurações.
+2. Monitorar o crescimento de novos componentes para manter a modularidade.
 
 

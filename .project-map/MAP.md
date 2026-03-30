@@ -66,22 +66,29 @@ src/components/
 ├── dashboard/
 │   └── DashboardOverview.tsx → 3 cards stat (sem avaliação — movida para header)
 ├── atendimentos/
-│   └── AtendimentosClient.tsx → Tabela filtros + paginação client-side (fetch único limit=500)
-│                                 maxHeight via useDynamicPagination, sem re-fetch por página
+│   ├── AtendimentosClient.tsx    → Container principal e orquestração
+│   ├── AtendimentosFilterBar.tsx → Filtros de busca e status
+│   ├── AtendimentosStats.tsx     → Resumo financeiro e contagem
+│   └── AtendimentosTable.tsx     → Listagem paginada (fetch único limit=500)
 ├── perfil/
 │   ├── DadosMedicoForm.tsx   → Form dados pessoais/profissionais/financeiros
 │   │                           Inclui seletor de tipo de chave Pix (woovi_pix_key_tipo)
 │   └── EnderecoForm.tsx      → Form endereço residencial com lookup ViaCEP automático
 ├── empresa/
-│   ├── DadosEmpresaForm.tsx  → Form CNPJ + dados fiscais com lookup ViaCEP no CEP
-│   └── ConfigNotasForm.tsx   → Config emissão notas fiscais
+│   ├── DadosEmpresaForm.tsx      → Container principal de dados fiscais
+│   ├── CompanyIdentificationSection.tsx → Dados de CNPJ e Razão Social
+│   ├── FiscalAddressSection.tsx → Dados de endereço e CEP
+│   └── ConfigNotasForm.tsx       → Config emissão notas fiscais
 ├── certificado/
 │   └── CertificadoSection.tsx → Upload, status e exclusão (soft delete) de certificado
 │                                 Props: uploadEndpoint + deleteEndpoint (explícitos)
 ├── documentos/
-│   └── DocumentosGrid.tsx    → Tabela dinâmica de modelos com filtros em lista e paginação inteligente
-│                               CRUD completo: criar, editar (RichTextEditor), excluir com confirmação
-│                               Edição protegida (modal não fecha ao clicar fora) e busca debounced
+│   ├── DocumentosGrid.tsx        → Container principal de modelos
+│   ├── DocumentFilterBar.tsx     → Filtros e busca de modelos
+│   ├── DocumentTable.tsx         → Tabela de listagem dinâmica
+│   ├── DocumentEditModal.tsx     → Editor de modelos (RichText)
+│   ├── DocumentDeleteModal.tsx   → Confirmação de exclusão
+│   └── constants.ts              → Definições de tipos e cores
 ├── ui/
 │   ├── PaginationControls.tsx → Botões Anterior/Próximo + "Página X de Y"
 │   └── PaginatedListView.tsx  → Lista genérica com paginação client-side + useDynamicPagination
@@ -115,6 +122,7 @@ src/components/
 src/utils/
 ├── index.ts          → cn(), daysUntil()
 ├── constants.ts      → PAGAMENTO_BADGES, STATUS_ATENDIMENTO_BADGES
+├── masks.ts          → unmask(), maskCPF(), maskCNPJ(), maskCEP(), maskPhone(), maskCRM_RQE()
 └── supabase/         → client.ts, server.ts, middleware.ts
 
 src/lib/

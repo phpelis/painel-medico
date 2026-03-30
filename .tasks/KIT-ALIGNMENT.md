@@ -1,6 +1,6 @@
 # Skill Kit Alignment — painel-medico
 
-> Última verificação: 2026-03-28
+> Última verificação: 2026-03-30 (Re-alinhamento)
 > Versão do kit: antigravity_cloud_code_skill_kit
 
 ## Infraestrutura base
@@ -25,14 +25,14 @@
 - [x] `@integrations-supabase` — schema.md populado com tabelas reais ✅
 - [x] `@integrations-supabase` — rls-policies.md documentado ✅
 - [x] `@integrations-supabase` — edge-functions.md documentado (nenhuma no projeto)
-- [ ] `@integrations-chatwoot` — N/A: painel-medico não integra Chatwoot diretamente
+- [x] `@integrations-chatwoot` — Handshake do Iframe documentado ✅
 - [ ] `@integrations-woovi` — woovi_pix_key lida via medicos; API chamada em painel-atendimento
 - [x] `@integrations-nuvem-fiscal` — empresa_medico table documentada; API pendente implementação
 - [ ] `@integrations-n8n` — n8n MCP tools não configurados
 
 ## Saúde do projeto
 - Features documentadas no MAP.md: 7/7 (auth, atendimentos, documentos, perfil, empresa, certificado, dashboard)
-- Arquivos no mapa: 51/51
+- Arquivos no mapa: 64/64 ✅
 - Design tokens documentados: SIM
 - SESSION.md atualizado: SIM
-- Última tarefa concluída: ALIGN-001 em 2026-03-28
+- Última tarefa concluída: MODERNIZE-UI em 2026-03-30

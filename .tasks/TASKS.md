@@ -21,7 +21,13 @@
 
 ## Active tasks
 
-(nenhuma tarefa ativa no momento)
+### TASK-ALIGN-001 — Refatorar componentes extensos
+- Status: COMPLETED
+- Priority: MEDIUM
+- Subtasks:
+  - [x] TASK-ALIGN-001-01 — Split `DocumentosGrid.tsx` (413 linhas) — OK
+  - [x] TASK-ALIGN-001-02 — Refatorar `DadosEmpresaForm.tsx` (216 linhas) — OK
+  - [x] TASK-ALIGN-001-03 — Extrair lógica de `AtendimentosClient.tsx` (205 linhas) — OK
 
 ---
 

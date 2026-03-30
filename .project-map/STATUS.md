@@ -3,7 +3,7 @@
 > Status: ALIGNED
 > Aligned on: 2026-03-28
 > Aligned by: antigravity_cloud_code_skill_kit
-> Last verified: 2026-03-30
+> Last verified: 2026-03-30 (Re-Alignment)
 
 ## Alignment checklist
 - [x] Task system created (.tasks/)
@@ -53,3 +53,15 @@
 
 ### Minores
 - [x] `AppHeader.tsx` — `'use client'` removido (sem hooks; agora Server Component)
+
+## Auditoria de Alinhamento (2026-03-30) — Refatoração Concluída
+
+### Problemas Corrigidos
+- [x] **DocumentosGrid.tsx**: 454 → 138 linhas (Refatorado em sub-componentes: `FilterBar`, `Table`, `Modals`).
+- [x] **DadosEmpresaForm.tsx**: 232 → 108 linhas (Refatorado em `IdentificationSection`, `AddressSection`).
+- [x] **AtendimentosClient.tsx**: 227 → 85 linhas (Refatorado em `FilterBar`, `Stats`, `Table`).
+
+### Resultado da Auditoria
+- Todos os componentes agora obedecem ao limite de 200 linhas.
+- Separação de responsabilidades (Separation of Concerns) aplicada com sucesso.
+- Estrutura de arquivos sincronizada com o `MAP.md`.
