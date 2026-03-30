@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { FileText, Pencil, Trash2, Plus, X } from 'lucide-react';
+import { useState, useMemo, useRef, useEffect } from 'react';
+import { FileText, Pencil, Trash2, Plus, X, Search, Filter } from 'lucide-react';
 import type { DocumentoModelo } from '@/types/database';
-import { PaginatedListView } from '@/components/ui/PaginatedListView';
+import { PaginationControls } from '@/components/ui/PaginationControls';
 import { FeedbackBanner } from '@/components/shared/FeedbackBanner';
 import { RichTextEditor } from '@/components/shared/RichTextEditor';
+import { useDynamicPagination } from '@/hooks/useDynamicPagination';
 
 interface Props { modelos: DocumentoModelo[] }
 
@@ -31,7 +32,7 @@ const TIPO_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 const FILTER_OPTIONS = [
-    { value: 'todos',          label: 'Todos' },
+    { value: 'todos',          label: 'Todos os tipos' },
     { value: 'receita',        label: 'Receita' },
     { value: 'atestado',       label: 'Atestado' },
     { value: 'pedido_exame',   label: 'Pedido de Exame' },
@@ -47,21 +48,53 @@ const TIPO_OPTIONS = [
     { value: 'encaminhamento', label: 'Encaminhamento' },
 ];
 
-const CARD_HEIGHT = 88;
+const ROW_HEIGHT = 68;
 const EMPTY_FORM: FormState = { titulo: '', tipo: '', conteudo: '', descricao: '' };
 
 export function DocumentosGrid({ modelos: initial }: Props) {
+    const listRef = useRef<HTMLDivElement>(null);
     const [modelos, setModelos] = useState<DocumentoModelo[]>(initial);
     const [filterTipo, setFilterTipo] = useState('todos');
+    const [searchTerm, setSearchTerm] = useState('');
     const [modalState, setModalState] = useState<ModalState>({ mode: 'closed' });
     const [form, setForm] = useState<FormState>(EMPTY_FORM);
     const [saving, setSaving] = useState(false);
     const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
+    const [displayPage, setDisplayPage] = useState(1);
 
-    const filtered = useMemo(
-        () => filterTipo === 'todos' ? modelos : modelos.filter(m => m.tipo === filterTipo),
-        [modelos, filterTipo]
-    );
+    const { itemsPerPage, availableHeight } = useDynamicPagination(listRef, ROW_HEIGHT, 0);
+
+    // Reset pagination when search or filter changes
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDisplayPage(1);
+        }, 300);
+        return () => clearTimeout(handler);
+    }, [searchTerm, filterTipo]);
+
+    const filtered = useMemo(() => {
+        let items = modelos;
+        if (filterTipo !== 'todos') {
+            items = items.filter(m => m.tipo === filterTipo);
+        }
+        if (searchTerm.trim()) {
+            const low = searchTerm.toLowerCase();
+            items = items.filter(m => 
+                m.titulo.toLowerCase().includes(low) || 
+                m.descricao?.toLowerCase().includes(low)
+            );
+        }
+        return items;
+    }, [modelos, filterTipo, searchTerm]);
+
+    const perPage = Math.max(1, itemsPerPage);
+    const totalDisplayPages = Math.max(1, Math.ceil(filtered.length / perPage));
+    const safePage = Math.min(displayPage, totalDisplayPages);
+
+    const paginatedItems = useMemo(() => {
+        const start = (safePage - 1) * perPage;
+        return filtered.slice(start, start + perPage);
+    }, [filtered, safePage, perPage]);
 
     function openCreate() {
         setForm(EMPTY_FORM);
@@ -152,48 +185,9 @@ export function DocumentosGrid({ modelos: initial }: Props) {
         }
     }
 
-    function renderItem(m: DocumentoModelo) {
-        const tipo = TIPO_LABELS[m.tipo] ?? { label: m.tipo || 'Documento', color: 'bg-background-secondary text-foreground-secondary' };
-        return (
-            <div className="medical-card p-4 flex items-center gap-4">
-                <div className="p-2.5 rounded-lg bg-background-secondary shrink-0">
-                    <FileText size={18} className="text-primary" />
-                </div>
-
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-sm font-semibold text-foreground truncate">{m.titulo}</p>
-                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-md shrink-0 ${tipo.color}`}>
-                            {tipo.label}
-                        </span>
-                    </div>
-                    {m.descricao && (
-                        <p className="text-xs text-foreground-secondary mt-0.5 line-clamp-1">{m.descricao}</p>
-                    )}
-                    <p className="text-[10px] text-foreground-secondary mt-1">
-                        {m.created_at ? new Date(m.created_at).toLocaleDateString('pt-BR') : ''}
-                    </p>
-                </div>
-
-                <div className="flex items-center gap-1 shrink-0">
-                    <button
-                        onClick={() => openEdit(m)}
-                        title="Editar"
-                        className="p-2 rounded-lg text-foreground-secondary hover:bg-background-secondary hover:text-primary transition-colors"
-                    >
-                        <Pencil size={15} />
-                    </button>
-                    <button
-                        onClick={() => openDelete(m)}
-                        title="Excluir"
-                        className="p-2 rounded-lg text-foreground-secondary hover:bg-error-light hover:text-error transition-colors"
-                    >
-                        <Trash2 size={15} />
-                    </button>
-                </div>
-            </div>
-        );
-    }
+    const tableStyle: React.CSSProperties = availableHeight > 0
+        ? { maxHeight: availableHeight }
+        : {};
 
     const isEditOrCreate = modalState.mode === 'edit' || modalState.mode === 'create';
     const isDelete = modalState.mode === 'delete';
@@ -201,108 +195,169 @@ export function DocumentosGrid({ modelos: initial }: Props) {
     return (
         <>
             <div className="flex flex-col gap-4">
-                {/* Header */}
-                <div className="flex items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-lg font-semibold text-foreground">Modelos de Documentos</h1>
-                        <p className="text-xs text-foreground-secondary mt-0.5">
-                            {modelos.length} modelo{modelos.length !== 1 ? 's' : ''} cadastrado{modelos.length !== 1 ? 's' : ''}
-                        </p>
+                {/* Header & Filter Bar */}
+                <div className="medical-card p-3 shrink-0">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 flex-1">
+                            <div className="relative">
+                                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-secondary pointer-events-none" />
+                                <input
+                                    placeholder="Buscar modelo ou conteúdo..."
+                                    value={searchTerm}
+                                    onChange={e => setSearchTerm(e.target.value)}
+                                    className="medical-input pl-8"
+                                />
+                            </div>
+                            <div className="relative">
+                                <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-secondary pointer-events-none" />
+                                <select 
+                                    value={filterTipo} 
+                                    onChange={e => setFilterTipo(e.target.value)} 
+                                    className="medical-input pl-8"
+                                >
+                                    {FILTER_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                                </select>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs font-semibold text-foreground-secondary shrink-0">
+                                    <strong className="text-foreground">{filtered.length}</strong> modelos
+                                </span>
+                            </div>
+                        </div>
+                        <button onClick={openCreate} className="action-btn-primary flex items-center justify-center gap-1.5 shrink-0">
+                            <Plus size={16} /> Novo Modelo
+                        </button>
                     </div>
-                    <button onClick={openCreate} className="action-btn-primary flex items-center gap-1.5">
-                        <Plus size={16} /> Novo Modelo
-                    </button>
                 </div>
 
                 {/* Feedback */}
-                {feedback && <FeedbackBanner type={feedback.type} message={feedback.msg} />}
+                {feedback && (
+                    <div className="shrink-0">
+                        <FeedbackBanner type={feedback.type} message={feedback.msg} />
+                    </div>
+                )}
 
-                {/* Filter pills */}
-                <div className="flex items-center gap-2 flex-wrap">
-                    {FILTER_OPTIONS.map(opt => (
-                        <button
-                            key={opt.value}
-                            onClick={() => setFilterTipo(opt.value)}
-                            className={`text-xs py-1.5 px-3 rounded-lg font-medium transition-colors ${
-                                filterTipo === opt.value
-                                    ? 'bg-primary text-white'
-                                    : 'bg-background-secondary text-foreground-secondary hover:text-foreground'
-                            }`}
-                        >
-                            {opt.label}
-                        </button>
-                    ))}
-                </div>
+                {/* List — similar to Atendimentos style */}
+                <div ref={listRef} className="medical-card flex flex-col overflow-hidden" style={tableStyle}>
+                    <div className="overflow-x-auto overflow-y-auto flex-1 h-full min-h-0">
+                        <table className="w-full text-sm border-separate border-spacing-0">
+                            <thead className="border-b border-border bg-background-secondary sticky top-0 z-10">
+                                <tr>
+                                    <th className="px-4 py-3 text-left text-label font-bold border-b border-border">Título / Descrição</th>
+                                    <th className="px-4 py-3 text-left text-label font-bold border-b border-border">Data Inclusão</th>
+                                    <th className="px-4 py-3 text-left text-label font-bold border-b border-border">Tipo</th>
+                                    <th className="px-4 py-3 text-center text-label font-bold border-b border-border">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-border">
+                                {paginatedItems.map(m => {
+                                    const tipo = TIPO_LABELS[m.tipo] ?? { label: m.tipo || 'Modelo', color: 'bg-background-secondary text-foreground-secondary' };
+                                    const createdAt = m.created_at ? new Date(m.created_at) : null;
+                                    const dateStr = createdAt?.toLocaleDateString('pt-BR');
+                                    const timeStr = createdAt?.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
-                {/* List */}
-                <PaginatedListView
-                    items={filtered}
-                    renderItem={renderItem}
-                    itemHeightEstimate={CARD_HEIGHT}
-                    gap={12}
-                    emptyState={
-                        <div className="flex flex-col items-center justify-center py-20 text-center">
-                            <FileText size={40} className="text-border-strong mb-3" />
-                            <p className="text-sm font-semibold text-foreground">Nenhum modelo encontrado</p>
-                            <p className="text-xs text-foreground-secondary mt-1">
-                                {filterTipo === 'todos'
-                                    ? 'Clique em "Novo Modelo" para criar o primeiro.'
-                                    : 'Nenhum modelo para este tipo. Tente outro filtro.'}
-                            </p>
+                                    return (
+                                        <tr key={m.id} className="hover:bg-background-secondary/50 transition-colors group">
+                                            <td className="px-4 py-3 align-top min-w-[200px]">
+                                                <div className="flex flex-col gap-0.5">
+                                                    <span className="text-sm font-semibold text-foreground break-words">{m.titulo}</span>
+                                                    {m.descricao && <span className="text-xs text-foreground-secondary line-clamp-1 break-words">{m.descricao}</span>}
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-3 align-top whitespace-nowrap">
+                                                {createdAt ? (
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1">Data</span>
+                                                        <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600 tracking-tight leading-none">
+                                                            <span>{dateStr}</span>
+                                                            <span className="text-slate-600 opacity-60 text-[10px]">{timeStr}</span>
+                                                        </div>
+                                                    </div>
+                                                ) : '—'}
+                                            </td>
+                                            <td className="px-4 py-3 align-top">
+                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md inline-block ${tipo.color}`}>
+                                                    {tipo.label}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3 text-center align-top">
+                                                <div className="flex items-center justify-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                                                    <button onClick={() => openEdit(m)} className="p-2 rounded-lg text-foreground-secondary hover:bg-background-secondary hover:text-primary transition-colors">
+                                                        <Pencil size={15} />
+                                                    </button>
+                                                    <button onClick={() => openDelete(m)} className="p-2 rounded-lg text-foreground-secondary hover:bg-error-light hover:text-error transition-colors">
+                                                        <Trash2 size={15} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                                {paginatedItems.length === 0 && (
+                                    <tr>
+                                        <td colSpan={4} className="p-20 text-center text-foreground-secondary text-sm">
+                                            Nenhum modelo encontrado.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {totalDisplayPages > 1 && (
+                        <div className="px-4 pb-4 pt-4 shrink-0 bg-white border-t border-border z-20">
+                            <PaginationControls
+                                currentPage={safePage}
+                                totalPages={totalDisplayPages}
+                                onPageChange={setDisplayPage}
+                            />
                         </div>
-                    }
-                />
+                    )}
+                </div>
             </div>
 
             {/* Edit / Create Modal */}
             {isEditOrCreate && (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
-                    onClick={closeModal}
-                >
-                    <div
-                        className="bg-white rounded-xl shadow-xl w-full max-w-3xl modal-container"
-                        onClick={e => e.stopPropagation()}
-                    >
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
                         {/* Modal Header */}
-                        <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
-                            <h2 className="text-sm font-semibold text-foreground">
-                                {modalState.mode === 'edit' ? 'Editar Modelo' : 'Novo Modelo'}
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0 bg-background-secondary/30">
+                            <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
+                                <FileText size={16} className="text-primary" />
+                                {modalState.mode === 'edit' ? 'Editar Modelo de Documento' : 'Novo Modelo de Documento'}
                             </h2>
                             <button
                                 onClick={closeModal}
-                                className="p-1 rounded hover:bg-background-secondary text-foreground-secondary transition-colors"
+                                className="p-1.5 rounded-lg hover:bg-background-secondary text-foreground-secondary hover:text-foreground transition-all"
                             >
-                                <X size={16} />
+                                <X size={18} />
                             </button>
                         </div>
 
                         {/* Modal Body */}
-                        <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-4 custom-scrollbar">
-                            {/* Feedback inside modal */}
+                        <div className="flex-1 overflow-y-auto p-5 pb-8 flex flex-col gap-5 custom-scrollbar">
                             {feedback && <FeedbackBanner type={feedback.type} message={feedback.msg} />}
 
-                            {/* Row 1: Título + Tipo */}
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div className="sm:col-span-2">
-                                    <label className="text-label block mb-1.5">Título *</label>
+                                    <label className="text-label-strong block mb-1.5 font-bold uppercase tracking-wider text-[10px]">Título do Modelo *</label>
                                     <input
                                         type="text"
                                         className="medical-input w-full"
                                         value={form.titulo}
                                         onChange={e => setForm(p => ({ ...p, titulo: e.target.value }))}
-                                        placeholder="Ex: Receita padrão adulto"
+                                        placeholder="Ex: Receita Especial Controlada"
                                         maxLength={100}
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-label block mb-1.5">Tipo</label>
+                                    <label className="text-label-strong block mb-1.5 font-bold uppercase tracking-wider text-[10px]">Tipo de Documento</label>
                                     <select
                                         className="medical-input w-full"
                                         value={form.tipo}
                                         onChange={e => setForm(p => ({ ...p, tipo: e.target.value }))}
                                     >
-                                        <option value="">Selecione</option>
+                                        <option value="">Selecione um tipo</option>
                                         {TIPO_OPTIONS.map(opt => (
                                             <option key={opt.value} value={opt.value}>{opt.label}</option>
                                         ))}
@@ -310,38 +365,36 @@ export function DocumentosGrid({ modelos: initial }: Props) {
                                 </div>
                             </div>
 
-                            {/* Row 2: Descrição */}
                             <div>
-                                <label className="text-label block mb-1.5">Descrição</label>
+                                <label className="text-label-strong block mb-1.5 font-bold uppercase tracking-wider text-[10px]">Descrição Opcional</label>
                                 <textarea
                                     className="medical-input w-full resize-none"
                                     rows={2}
                                     value={form.descricao}
                                     onChange={e => setForm(p => ({ ...p, descricao: e.target.value }))}
-                                    placeholder="Breve descrição do modelo..."
+                                    placeholder="Breve resumo para ajudar a identificar este modelo..."
                                     maxLength={200}
                                 />
                             </div>
 
-                            {/* Row 3: Rich Text Editor */}
-                            <div className="flex flex-col" style={{ minHeight: '320px' }}>
-                                <label className="text-label block mb-1.5">Conteúdo *</label>
-                                <div className="flex-1" style={{ minHeight: '280px' }}>
+                            <div className="flex-1 flex flex-col min-h-[400px]">
+                                <label className="text-label-strong block mb-1.5 font-bold uppercase tracking-wider text-[10px]">Conteúdo do Documento *</label>
+                                <div className="flex-1 border border-border rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 transition-all">
                                     <RichTextEditor
                                         value={form.conteudo}
                                         onChange={v => setForm(p => ({ ...p, conteudo: v }))}
-                                        placeholder="Digite o conteúdo do modelo..."
-                                        className="h-full"
+                                        placeholder="Comece a digitar o conteúdo do seu modelo aqui..."
+                                        className="h-full min-h-[350px]"
                                     />
                                 </div>
                             </div>
                         </div>
 
                         {/* Modal Footer */}
-                        <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-border shrink-0">
+                        <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-border shrink-0 bg-background-secondary/20">
                             <button
                                 onClick={closeModal}
-                                className="action-btn-ghost"
+                                className="action-btn-ghost h-10 px-6 font-bold"
                                 disabled={saving}
                             >
                                 Cancelar
@@ -349,9 +402,9 @@ export function DocumentosGrid({ modelos: initial }: Props) {
                             <button
                                 onClick={handleSave}
                                 disabled={saving}
-                                className="action-btn-primary"
+                                className="action-btn-primary h-10 px-8 font-bold shadow-lg shadow-primary/20"
                             >
-                                {saving ? 'Salvando...' : 'Salvar Modelo'}
+                                {saving ? 'Processando...' : 'Salvar Modelo'}
                             </button>
                         </div>
                     </div>
@@ -360,32 +413,26 @@ export function DocumentosGrid({ modelos: initial }: Props) {
 
             {/* Delete Confirmation Modal */}
             {isDelete && modalState.mode === 'delete' && (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
-                    onClick={closeModal}
-                >
-                    <div
-                        className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 flex flex-col gap-4"
-                        onClick={e => e.stopPropagation()}
-                    >
-                        <div className="flex items-start gap-3">
-                            <div className="p-2 rounded-lg bg-error-light shrink-0">
-                                <Trash2 size={18} className="text-error" />
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 flex flex-col gap-6 animate-in fade-in zoom-in-95 duration-150">
+                        <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-error-light flex items-center justify-center shrink-0 border border-error/10">
+                                <Trash2 size={24} className="text-error" />
                             </div>
                             <div>
-                                <p className="text-sm font-semibold text-foreground">Excluir modelo?</p>
-                                <p className="text-xs text-foreground-secondary mt-1">
-                                    &ldquo;{modalState.doc.titulo}&rdquo; será excluído permanentemente. Esta ação não pode ser desfeita.
+                                <h3 className="text-base font-bold text-foreground">Confirmar Exclusão</h3>
+                                <p className="text-xs text-foreground-secondary mt-1 leading-relaxed">
+                                    Você está prestes a excluir o modelo <strong className="text-foreground">&ldquo;{modalState.doc.titulo}&rdquo;</strong>. Esta ação é permanente e não poderá ser desfeita.
                                 </p>
                             </div>
                         </div>
 
                         {feedback && <FeedbackBanner type={feedback.type} message={feedback.msg} />}
 
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center gap-3 mt-2">
                             <button
                                 onClick={closeModal}
-                                className="action-btn-ghost"
+                                className="flex-1 h-11 action-btn-ghost font-bold"
                                 disabled={saving}
                             >
                                 Cancelar
@@ -393,9 +440,9 @@ export function DocumentosGrid({ modelos: initial }: Props) {
                             <button
                                 onClick={handleDelete}
                                 disabled={saving}
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-error text-white text-sm font-semibold rounded-lg hover:bg-error/90 active:scale-[0.98] transition-all disabled:opacity-50"
+                                className="flex-1 h-11 inline-flex items-center justify-center gap-2 px-4 py-2 bg-error text-white text-sm font-bold rounded-lg hover:bg-error/90 active:scale-[0.98] transition-all disabled:opacity-50 shadow-lg shadow-error/15"
                             >
-                                {saving ? 'Excluindo...' : 'Excluir'}
+                                {saving ? 'Excluindo...' : 'Sim, Excluir'}
                             </button>
                         </div>
                     </div>

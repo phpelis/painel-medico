@@ -15,7 +15,7 @@
 - [x] Design system documentado (.project-map/design-system.md) — 2026-03-28
 - [x] Supabase: schema.md com tabelas reais — 2026-03-28
 - [x] Supabase: rls-policies.md documentado — 2026-03-28
-- [ ] Chatwoot: webhooks-received.md documentado (N/A — painel-medico não integra Chatwoot diretamente)
+- [x] Chatwoot: webhooks-received.md documentado (N/A) — 2026-03-30
 
 ---
 

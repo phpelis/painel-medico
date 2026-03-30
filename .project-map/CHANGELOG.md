@@ -1,4 +1,8 @@
-# Changelog — painel-medico
+## [30/03/2026]
+- **Modernização de Documentos**: `DocumentosGrid.tsx` convertido para tabela com paginação dinâmica e filtros em lista.
+- **Segurança de Interface**: Modal de edição agora impede fechamento por clique externo (prevenção de perda de dados).
+- **Estabilização de UI**: Adicionado buffer de scroll e offset de -1 item no `useDynamicPagination` para evitar scroll duplo do navegador.
+- **Consistência Visual**: Alinhamento do padrão de data/hora com o `painel-atendimento`.
 
 > Formato: [DATA] — Descrição da mudança
 

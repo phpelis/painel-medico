@@ -6,11 +6,16 @@
 ## Contexto da última sessão
 
 - Sincronização completa da documentação (.project-map/ e schema.md)
-- Remoção de itens de Woovi e n8n de TASKS.md conforme solicitado
-- Saúde do projeto atualizada (63/63 arquivos no mapa)
+- Saúde do projeto atualizada (64/64 arquivos no mapa)
+- Inserção do `RichTextEditor.tsx` em `shared/` e uso em `DocumentosGrid.tsx`
+- Melhoria de UI: Redução de 1 item e ajuste de scroll em listas dinâmicas (Atendimentos)
+- Modernização: Grade de Documentos convertida para Tabela Dinâmica com filtros em lista e nova data/hora.
+- Comportamento: Modal de edição agora protegido contra cliques externos acidentais.
+- Commit e Push pendentes para nova alteração.
 
 ## Para retomar
 
-1. Continue as tarefas de desenvolvimento conforme novas solicitações
-2. Use `@core-context-optimizer` para carregar o contexto da documentação atualizada
+1. Aguarde novas solicitações de desenvolvimento ou melhorias de UI.
+2. Monitorar o estado da branch `main` após o push.
+
 

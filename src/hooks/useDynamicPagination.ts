@@ -38,9 +38,11 @@ export function useDynamicPagination(
         }
 
         const forItems = totalHeight - PAGINATION_HEIGHT - CONTAINER_PADDING - BOTTOM_MARGIN;
-        const count = Math.max(MIN_ITEMS, Math.floor((forItems + gap) / (itemHeight + gap)));
+        // Aplica offset de -1 item para garantir margem de respiro vertical (UX)
+        const count = Math.max(MIN_ITEMS, Math.floor((forItems + gap) / (itemHeight + gap)) - 1);
 
-        setAvailableHeight(totalHeight);
+        // Define a altura disponível com um buffer de 8px para evitar o acionamento do scroll do body
+        setAvailableHeight(totalHeight - 8);
         setItemsPerPage(count);
     }, [containerRef, itemHeight, gap]);
 

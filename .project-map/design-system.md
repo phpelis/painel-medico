@@ -30,6 +30,7 @@
 - **Fonte**: Outfit (Google Fonts) — `var(--font-outfit)`
 - **Labels**: `.text-label` (0.75rem, semibold, uppercase)
 - **Metadata**: `.text-metadata` (0.625rem, semibold, uppercase)
+- **Data/Hora (Padrão)**: Label "Data" (8px), Data Bold (11px), Hora (10px, 60% opacidade)
 
 ---
 

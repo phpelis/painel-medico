@@ -79,9 +79,9 @@ src/components/
 │   └── CertificadoSection.tsx → Upload, status e exclusão (soft delete) de certificado
 │                                 Props: uploadEndpoint + deleteEndpoint (explícitos)
 ├── documentos/
-│   └── DocumentosGrid.tsx    → Lista de modelos com filtros por tipo, edição inline via modal
+│   └── DocumentosGrid.tsx    → Tabela dinâmica de modelos com filtros em lista e paginação inteligente
 │                               CRUD completo: criar, editar (RichTextEditor), excluir com confirmação
-│                               Estado local atualizado sem reload após cada operação
+│                               Edição protegida (modal não fecha ao clicar fora) e busca debounced
 ├── ui/
 │   ├── PaginationControls.tsx → Botões Anterior/Próximo + "Página X de Y"
 │   └── PaginatedListView.tsx  → Lista genérica com paginação client-side + useDynamicPagination
@@ -128,7 +128,7 @@ src/lib/
 src/hooks/
 ├── useDynamicPagination.ts → Calcula itemsPerPage e availableHeight via getBoundingClientRect()
 │                             ResizeObserver + window resize + 300ms debounce
-│                             Evita dependência circular com clientHeight
+│                             Evita dependência circular com clientHeight e possui buffer de 8px + offset de -1 item
 └── useChatwootHandshake.ts → Hook principal (postMessage) do Handshake do iframe do Chatwoot
 ```
 
