@@ -1,6 +1,5 @@
 import { getAuthenticatedUser, getSupabaseAdmin } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
-import { TopBar } from '@/components/layout/TopBar';
 import { ConfigNotasForm } from '@/components/empresa/ConfigNotasForm';
 import { CertificadoSection } from '@/components/certificado/CertificadoSection';
 
@@ -19,19 +18,16 @@ export default async function EmpresaNotasPage() {
     }
 
     return (
-        <div className="flex-1 flex flex-col overflow-hidden">
-            <TopBar title="Configuração de Notas Fiscais" subtitle="Regime tributário e certificado e-CNPJ" />
-            <div className="flex-1 overflow-y-auto p-6">
-                <div className="max-w-xl space-y-6">
-                    <ConfigNotasForm empresa={empresaRes.data} />
-                    <CertificadoSection
-                        cert={certRes.data}
-                        tipo="e-cnpj"
-                        uploadEndpoint="/api/empresa/certificado/upload"
-                        title="Certificado Digital e-CNPJ"
-                        description="Usado para assinar Notas Fiscais de Serviço Eletrônicas (NFS-e) via Nuvem Fiscal."
-                    />
-                </div>
+        <div className="p-6">
+            <div className="max-w-xl space-y-6">
+                <ConfigNotasForm empresa={empresaRes.data} />
+                <CertificadoSection
+                    cert={certRes.data}
+                    tipo="e-cnpj"
+                    uploadEndpoint="/api/empresa/certificado/upload"
+                    title="Certificado Digital e-CNPJ"
+                    description="Usado para assinar Notas Fiscais de Serviço Eletrônicas (NFS-e) via Nuvem Fiscal."
+                />
             </div>
         </div>
     );

@@ -1,6 +1,5 @@
 import { getAuthenticatedUser, getSupabaseAdmin } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
-import { TopBar } from '@/components/layout/TopBar';
 import { DadosMedicoForm } from '@/components/perfil/DadosMedicoForm';
 import { decryptPixKey } from '@/lib/encryption';
 import type { Medico } from '@/types/database';
@@ -22,11 +21,8 @@ export default async function PerfilDadosPage() {
     }
 
     return (
-        <div className="flex-1 flex flex-col overflow-hidden">
-            <TopBar title="Dados do Médico" subtitle="Informações pessoais e profissionais" />
-            <div className="flex-1 overflow-y-auto p-6">
-                <DadosMedicoForm medico={medicoData} />
-            </div>
+        <div className="p-6">
+            <DadosMedicoForm medico={medicoData} />
         </div>
     );
 }

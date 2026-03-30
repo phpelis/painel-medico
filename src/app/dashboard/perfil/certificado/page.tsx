@@ -1,6 +1,5 @@
 import { getAuthenticatedUser, getSupabaseAdmin } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
-import { TopBar } from '@/components/layout/TopBar';
 import { CertificadoSection } from '@/components/certificado/CertificadoSection';
 
 export default async function PerfilCertificadoPage() {
@@ -16,25 +15,15 @@ export default async function PerfilCertificadoPage() {
         .eq('status', 'ativo')
         .maybeSingle();
 
-    // Fetch doctor CPF for validation
-    const { data: medico } = await admin
-        .from('medicos')
-        .select('cpf, nome')
-        .eq('id', user.id)
-        .maybeSingle();
-
     return (
-        <div className="flex-1 flex flex-col overflow-hidden">
-            <TopBar title="Certificado Digital (e-CPF)" subtitle="Usado para assinar documentos médicos" />
-            <div className="flex-1 overflow-y-auto p-6">
-                <CertificadoSection
-                    cert={cert}
-                    tipo="e-cpf"
-                    uploadEndpoint="/api/certificado/upload"
-                    title="Certificado Digital e-CPF"
-                    description="Este certificado é usado para assinar receitas, atestados e outros documentos digitalmente."
-                />
-            </div>
+        <div className="p-6">
+            <CertificadoSection
+                cert={cert}
+                tipo="e-cpf"
+                uploadEndpoint="/api/certificado/upload"
+                title="Certificado Digital e-CPF"
+                description="Este certificado é usado para assinar receitas, atestados e outros documentos digitalmente."
+            />
         </div>
     );
 }

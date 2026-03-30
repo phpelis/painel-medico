@@ -1,6 +1,5 @@
 import { getAuthenticatedUser, getSupabaseAdmin } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
-import { TopBar } from '@/components/layout/TopBar';
 import { DashboardOverview } from '@/components/dashboard/DashboardOverview';
 
 export default async function DashboardPage() {
@@ -43,20 +42,14 @@ export default async function DashboardPage() {
     const certVencimento = certRes.data?.validade_ate || null;
 
     return (
-        <div className="flex-1 flex flex-col overflow-hidden">
-            <TopBar
-                title={`Olá, Dr. ${medico?.nome?.split(' ')[0] || 'Médico'}`}
-                subtitle={`CRM ${medico?.crm || '---'}/${medico?.uf_crm || '---'}`}
+        <div className="p-6">
+            <DashboardOverview
+                totalAtendimentos={totalAtendimentos}
+                receitaMes={receitaMes}
+                certVencimento={certVencimento}
+                recentAtendimentos={recentAtendimentos}
+                mediaAvaliacao={medico?.media_avaliacao}
             />
-            <div className="flex-1 overflow-y-auto p-6">
-                <DashboardOverview
-                    totalAtendimentos={totalAtendimentos}
-                    receitaMes={receitaMes}
-                    certVencimento={certVencimento}
-                    recentAtendimentos={recentAtendimentos}
-                    mediaAvaliacao={medico?.media_avaliacao}
-                />
-            </div>
         </div>
     );
 }

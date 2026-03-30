@@ -1,6 +1,5 @@
 import { getAuthenticatedUser, getSupabaseAdmin } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
-import { TopBar } from '@/components/layout/TopBar';
 import { DocumentosGrid } from '@/components/documentos/DocumentosGrid';
 import type { DocumentoModelo } from '@/types/database';
 
@@ -15,11 +14,8 @@ export default async function DocumentosPage() {
         .order('titulo', { ascending: true });
 
     return (
-        <div className="flex-1 flex flex-col overflow-hidden">
-            <TopBar title="Modelos de Documentos" subtitle="Receitas, atestados e outros modelos configurados" />
-            <div className="flex-1 overflow-y-auto p-6">
-                <DocumentosGrid modelos={(modelos || []) as DocumentoModelo[]} />
-            </div>
+        <div className="p-6">
+            <DocumentosGrid modelos={(modelos || []) as DocumentoModelo[]} />
         </div>
     );
 }
