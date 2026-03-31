@@ -7,7 +7,8 @@ import { useDynamicPagination } from '@/hooks/useDynamicPagination';
 import { AtendimentosTable } from './AtendimentosTable';
 import { AtendimentoDetailsModal } from './AtendimentoDetailsModal';
 
-type Filtros = { paciente: string; dataInicio: string; dataFim: string };
+/** Server-side date filters only — search is done client-side */
+type Filtros = { search: string; dataInicio: string; dataFim: string };
 
 type TabType = 'summary' | 'documents' | 'chat';
 
@@ -27,14 +28,17 @@ interface AtendimentoDetail {
     chat_historico?: any[] | null;
 }
 
-const CARD_HEIGHT = 68;
+/** Must match the gap-2 (8px) used in the card list */
+const CARD_HEIGHT = 58;
+const CARD_GAP    = 8;
 const API_MAX_LIMIT = 500;
 
 export function AtendimentosClient() {
-    const tableRef = useRef<HTMLDivElement>(null);
-    const [filtros, setFiltros] = useState<Filtros>({ paciente: '', dataInicio: '', dataFim: '' });
+    // contentRef goes on the scrollable card — NOT the toolbar wrapper
+    const contentRef = useRef<HTMLDivElement>(null);
+
+    const [filtros, setFiltros] = useState<Filtros>({ search: '', dataInicio: '', dataFim: '' });
     const [allData, setAllData] = useState<Atendimento[]>([]);
-    const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(true);
     const [displayPage, setDisplayPage] = useState(1);
 
@@ -43,111 +47,110 @@ export function AtendimentosClient() {
     const [activeTab, setActiveTab] = useState<TabType | null>(null);
     const [detailsCache, setDetailsCache] = useState<Record<string, AtendimentoDetail>>({});
 
-    const { itemsPerPage, availableHeight } = useDynamicPagination(tableRef, CARD_HEIGHT, 8);
+    // Hook measures from the top of contentRef (below toolbar) — correct item count
+    const { itemsPerPage, availableHeight } = useDynamicPagination(contentRef, CARD_HEIGHT, CARD_GAP);
 
+    // ── Fetch (server-side: only date range + always finalizado) ──────────────
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
             const params = new URLSearchParams();
-            // Always fetch only finalized atendimentos
             params.set('status', 'finalizado');
             if (filtros.dataInicio) params.set('data_inicio', filtros.dataInicio);
-            if (filtros.dataFim) params.set('data_fim', filtros.dataFim);
-            if (filtros.paciente) params.set('paciente', filtros.paciente);
-            params.set('page', '1');
+            if (filtros.dataFim)    params.set('data_fim',    filtros.dataFim);
             params.set('limit', String(API_MAX_LIMIT));
 
-            const res = await fetch(`/api/atendimentos?${params}`);
+            const res  = await fetch(`/api/atendimentos?${params}`);
             const json = await res.json();
             setAllData(json.data || []);
-            setTotal(json.total || 0);
             setDisplayPage(1);
         } catch {
             setAllData([]);
         } finally {
             setLoading(false);
         }
-    }, [filtros]);
+    }, [filtros.dataInicio, filtros.dataFim]);
 
     useEffect(() => { fetchData(); }, [fetchData]);
 
+    // ── Client-side search (nome, token, tipo) ─────────────────────────────────
+    const filteredData = useMemo(() => {
+        const term = filtros.search.trim().toLowerCase();
+        if (!term) return allData;
+        return allData.filter(a =>
+            a.paciente?.nome?.toLowerCase().includes(term) ||
+            a.token?.toLowerCase().includes(term)         ||
+            a.tipo_consulta?.toLowerCase().includes(term)
+        );
+    }, [allData, filtros.search]);
+
+    // ── Pagination ─────────────────────────────────────────────────────────────
+    const perPage          = Math.max(1, itemsPerPage);
+    const totalPages       = Math.max(1, Math.ceil(filteredData.length / perPage));
+    const safePage         = Math.min(displayPage, totalPages);
+
+    const paginatedData = useMemo(() => {
+        const start = (safePage - 1) * perPage;
+        return filteredData.slice(start, start + perPage);
+    }, [filteredData, safePage, perPage]);
+
+    // ── Stats (computed from full allData, not filtered) ──────────────────────
+    const { totalPago, totalPendente } = useMemo(() => ({
+        totalPago:     allData.filter(a => a.pagamento_status === 'pago')
+                              .reduce((s, a) => s + (a.valor_consulta || 0), 0),
+        totalPendente: allData.filter(a => a.pagamento_status === 'pendente')
+                              .reduce((s, a) => s + (a.valor_consulta || 0), 0),
+    }), [allData]);
+
+    // ── Detail fetch & modal handlers ─────────────────────────────────────────
     const fetchDetails = useCallback(async (id: string) => {
         if (detailsCache[id] && !detailsCache[id].loading) return;
-
         setDetailsCache(prev => ({ ...prev, [id]: { loading: true, documents: [] } }));
         try {
-            const res = await fetch(`/api/atendimentos/${id}`);
-            if (!res.ok) throw new Error('Erro ao carregar detalhes');
+            const res  = await fetch(`/api/atendimentos/${id}`);
+            if (!res.ok) throw new Error();
             const data = await res.json();
             setDetailsCache(prev => ({ ...prev, [id]: { ...data, loading: false, documents: data.documents || [] } }));
         } catch {
             setDetailsCache(prev => ({
                 ...prev,
-                [id]: { loading: false, error: 'Erro ao carregar detalhes do atendimento.', documents: [] }
+                [id]: { loading: false, error: 'Erro ao carregar detalhes.', documents: [] },
             }));
         }
     }, [detailsCache]);
 
     const handleAction = useCallback((id: string, tab: TabType) => {
         if (expandedId === id && activeTab === tab) {
-            setExpandedId(null);
-            setActiveTab(null);
+            setExpandedId(null); setActiveTab(null);
         } else {
-            setExpandedId(id);
-            setActiveTab(tab);
+            setExpandedId(id); setActiveTab(tab);
             fetchDetails(id);
         }
     }, [expandedId, activeTab, fetchDetails]);
 
-    const handleTabChange = useCallback((tab: TabType) => {
-        setActiveTab(tab);
-    }, []);
-
-    const handleClose = useCallback(() => {
-        setExpandedId(null);
-        setActiveTab(null);
-    }, []);
-
     const handleFilter = useCallback((key: keyof Filtros, value: string) => {
         setFiltros(prev => ({ ...prev, [key]: value }));
+        if (key !== 'search') setDisplayPage(1);
     }, []);
 
-    const perPage = Math.max(1, itemsPerPage);
-    const totalDisplayPages = Math.max(1, Math.ceil(allData.length / perPage));
-    const safePage = Math.min(displayPage, totalDisplayPages);
-
-    const paginatedData = useMemo(() => {
-        const start = (safePage - 1) * perPage;
-        return allData.slice(start, start + perPage);
-    }, [allData, safePage, perPage]);
-
-    const { totalPago, totalPendente } = useMemo(() => ({
-        totalPago: allData
-            .filter(a => a.pagamento_status === 'pago')
-            .reduce((s, a) => s + (a.valor_consulta || 0), 0),
-        totalPendente: allData
-            .filter(a => a.pagamento_status === 'pendente')
-            .reduce((s, a) => s + (a.valor_consulta || 0), 0),
-    }), [allData]);
-
-    const expandedItem = expandedId ? allData.find(a => a.id === expandedId) : null;
+    const expandedItem = expandedId ? allData.find(a => a.id === expandedId) ?? null : null;
 
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col">
             <AtendimentosTable
                 items={paginatedData}
                 loading={loading}
+                contentRef={contentRef}
                 availableHeight={availableHeight}
-                tableRef={tableRef}
                 currentPage={safePage}
-                totalPages={totalDisplayPages}
+                totalPages={totalPages}
                 onPageChange={setDisplayPage}
                 expandedId={expandedId}
                 activeTab={activeTab}
                 onAction={handleAction}
                 filtros={filtros}
                 onFilter={handleFilter}
-                total={total}
+                total={filteredData.length}
                 totalPago={totalPago}
                 totalPendente={totalPendente}
             />
@@ -157,8 +160,8 @@ export function AtendimentosClient() {
                     item={expandedItem}
                     detail={detailsCache[expandedId] || { loading: true, documents: [] }}
                     activeTab={activeTab}
-                    onTabChange={handleTabChange}
-                    onClose={handleClose}
+                    onTabChange={tab => setActiveTab(tab)}
+                    onClose={() => { setExpandedId(null); setActiveTab(null); }}
                 />
             )}
         </div>

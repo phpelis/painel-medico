@@ -5,13 +5,14 @@ import type { Atendimento } from '@/types/database';
 import { PaginationControls } from '@/components/ui/PaginationControls';
 import { cn } from '@/utils';
 
-type Filtros = { paciente: string; dataInicio: string; dataFim: string };
+type Filtros = { search: string; dataInicio: string; dataFim: string };
 
 interface Props {
     items: Atendimento[];
     loading: boolean;
+    /** Applied to the scrollable content card — NOT the toolbar wrapper */
+    contentRef: React.RefObject<HTMLDivElement | null>;
     availableHeight: number;
-    tableRef: React.RefObject<HTMLDivElement | null>;
     currentPage: number;
     totalPages: number;
     onPageChange: (page: number) => void;
@@ -28,8 +29,8 @@ interface Props {
 export function AtendimentosTable({
     items,
     loading,
+    contentRef,
     availableHeight,
-    tableRef,
     currentPage,
     totalPages,
     onPageChange,
@@ -42,22 +43,21 @@ export function AtendimentosTable({
     totalPago,
     totalPendente,
 }: Props) {
-    const containerStyle: React.CSSProperties = availableHeight > 0 ? { height: availableHeight } : {};
-    const hasData = !loading && items.length > 0;
+    const contentStyle: React.CSSProperties = availableHeight > 0 ? { height: availableHeight } : {};
 
     return (
-        <div ref={tableRef} className="flex flex-col overflow-hidden" style={containerStyle}>
+        <div className="flex flex-col">
 
-            {/* ── Toolbar ── */}
+            {/* ── Toolbar (above the card, visually joined) ── */}
             <div className="flex flex-wrap items-center gap-2 px-2 py-1.5 bg-slate-100/50 border border-slate-200 border-b-0 rounded-t-xl shrink-0 z-10">
-                {/* Search */}
+                {/* Universal search */}
                 <div className="relative flex-1 min-w-[140px] sm:max-w-xs">
                     <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
                     <input
                         type="text"
-                        placeholder="Buscar paciente..."
-                        value={filtros.paciente}
-                        onChange={e => onFilter('paciente', e.target.value)}
+                        placeholder="Buscar por paciente, token ou tipo..."
+                        value={filtros.search}
+                        onChange={e => onFilter('search', e.target.value)}
                         className="w-full pl-8 pr-3 h-9 border border-slate-200 rounded-lg bg-white text-[11px] text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm"
                     />
                 </div>
@@ -76,7 +76,7 @@ export function AtendimentosTable({
                     className="h-9 border border-slate-200 rounded-lg px-2 text-[11px] text-slate-600 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm"
                 />
 
-                {/* Stats */}
+                {/* Stats (desktop only) */}
                 {!loading && total > 0 && (
                     <div className="hidden sm:flex items-center gap-3 ml-auto pr-1 text-[10px] font-medium text-slate-500 whitespace-nowrap">
                         <span><strong className="text-slate-700">{total}</strong> atendimentos</span>
@@ -86,17 +86,18 @@ export function AtendimentosTable({
                 )}
             </div>
 
-            {/* ── Content card ── */}
+            {/* ── Content card (ref here so hook measures from below the toolbar) ── */}
             <div
-                className="flex-1 flex flex-col overflow-hidden border border-slate-200 rounded-b-xl bg-white"
-                style={{ boxShadow: 'var(--card-shadow)' }}
+                ref={contentRef}
+                className="flex flex-col overflow-hidden border border-slate-200 rounded-b-xl bg-white"
+                style={{ ...contentStyle, boxShadow: 'var(--card-shadow)' }}
             >
                 {loading ? (
-                    <div className="flex-1 flex items-center justify-center text-sm text-foreground-secondary">
+                    <div className="flex-1 flex items-center justify-center text-sm text-foreground-secondary py-12">
                         Carregando...
                     </div>
                 ) : items.length === 0 ? (
-                    <div className="flex-1 flex items-center justify-center text-sm text-foreground-secondary">
+                    <div className="flex-1 flex items-center justify-center text-sm text-foreground-secondary py-12">
                         Nenhum atendimento encontrado.
                     </div>
                 ) : (
@@ -104,7 +105,9 @@ export function AtendimentosTable({
                         {items.map(a => {
                             const endDate = a.fim ? new Date(a.fim) : a.inicio ? new Date(a.inicio) : null;
                             const dateStr = endDate ? endDate.toLocaleDateString('pt-BR') : '—';
-                            const timeStr = endDate ? endDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : null;
+                            const timeStr = endDate
+                                ? endDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                                : null;
                             const isExpanded = expandedId === a.id;
                             const showValor = a.valor_consulta != null && a.valor_consulta > 0;
 
@@ -115,7 +118,7 @@ export function AtendimentosTable({
                                 >
                                     <div className="flex flex-col md:flex-row items-center justify-between p-3 gap-4">
 
-                                        {/* Left: icon + patient (title) + token/tipo (subtitle) */}
+                                        {/* Left: icon + patient name (title) + token/tipo (subtitle) */}
                                         <div className="flex items-center gap-4 w-full md:w-auto min-w-0 flex-1">
                                             <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0 transition-colors group-hover:bg-blue-100 border border-slate-100 shadow-sm">
                                                 <Stethoscope className="w-4 h-4 text-blue-600" />
@@ -136,10 +139,10 @@ export function AtendimentosTable({
                                             </div>
                                         </div>
 
-                                        {/* Right: valor + date + buttons */}
+                                        {/* Right: valor + date + action buttons */}
                                         <div className="flex items-center gap-6 shrink-0 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 border-slate-100 pt-3 md:pt-0">
 
-                                            {/* Valor */}
+                                            {/* Valor (same layout as Data) */}
                                             {showValor && (
                                                 <div className="flex flex-col text-left">
                                                     <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1">Valor</span>
@@ -149,7 +152,7 @@ export function AtendimentosTable({
                                                 </div>
                                             )}
 
-                                            {/* Date */}
+                                            {/* Data */}
                                             <div className="flex flex-col text-left">
                                                 <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1">Data</span>
                                                 <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600 tracking-tight leading-none whitespace-nowrap">

@@ -11,7 +11,6 @@ export async function GET(request: NextRequest) {
         const status = searchParams.get('status');
         const dataInicio = searchParams.get('data_inicio');
         const dataFim = searchParams.get('data_fim');
-        const paciente = searchParams.get('paciente');
         const limit = parseInt(searchParams.get('limit') || '50');
         const page = parseInt(searchParams.get('page') || '1');
         const offset = (page - 1) * limit;
@@ -37,10 +36,6 @@ export async function GET(request: NextRequest) {
         if (dataFim) {
             query = query.lte('created_at', `${dataFim}T23:59:59`);
         }
-        if (paciente) {
-            query = query.ilike('pacientes.nome', `%${paciente}%`);
-        }
-
         const { data, error, count } = await query;
         if (error) throw error;
 
