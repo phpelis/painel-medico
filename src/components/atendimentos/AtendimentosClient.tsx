@@ -85,7 +85,7 @@ export function AtendimentosClient() {
     }, [allData, filtros.search]);
 
     // ── Pagination ─────────────────────────────────────────────────────────────
-    const perPage          = 4; // Fixed 4 items per page
+    const perPage          = API_MAX_LIMIT; // Show all items — scroll handles navigation
     const totalPages       = Math.max(1, Math.ceil(filteredData.length / perPage));
     const safePage         = Math.min(displayPage, totalPages);
 
