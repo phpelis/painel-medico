@@ -25,7 +25,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             />
             <NavBar />
             <SubNavBar />
-            <main className="flex-1 min-h-0 overflow-hidden flex flex-col">
+            <main className="flex-1 min-h-0 overflow-y-auto scrollbar-hidden">
                 {children}
             </main>
         </div>
