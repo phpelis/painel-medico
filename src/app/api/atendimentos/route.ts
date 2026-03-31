@@ -28,9 +28,9 @@ export async function GET(request: NextRequest) {
             .order('created_at', { ascending: false })
             .range(offset, offset + limit - 1);
 
-        if (status && status !== 'todos') {
-            query = query.eq('status', status);
-        }
+        // Default to finalizado if no explicit status filter is provided
+        const resolvedStatus = (!status || status === 'todos') ? 'finalizado' : status;
+        query = query.eq('status', resolvedStatus);
         if (dataInicio) {
             query = query.gte('created_at', `${dataInicio}T00:00:00`);
         }

@@ -4,12 +4,10 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import type { Atendimento } from '@/types/database';
 import { useDynamicPagination } from '@/hooks/useDynamicPagination';
 
-import { AtendimentosFilterBar } from './AtendimentosFilterBar';
-import { AtendimentosStats } from './AtendimentosStats';
 import { AtendimentosTable } from './AtendimentosTable';
 import { AtendimentoDetailsModal } from './AtendimentoDetailsModal';
 
-type Filtros = { status: string; dataInicio: string; dataFim: string; paciente: string; };
+type Filtros = { paciente: string; dataInicio: string; dataFim: string };
 
 type TabType = 'summary' | 'documents' | 'chat';
 
@@ -34,7 +32,7 @@ const API_MAX_LIMIT = 500;
 
 export function AtendimentosClient() {
     const tableRef = useRef<HTMLDivElement>(null);
-    const [filtros, setFiltros] = useState<Filtros>({ status: 'todos', dataInicio: '', dataFim: '', paciente: '' });
+    const [filtros, setFiltros] = useState<Filtros>({ paciente: '', dataInicio: '', dataFim: '' });
     const [allData, setAllData] = useState<Atendimento[]>([]);
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(true);
@@ -51,7 +49,8 @@ export function AtendimentosClient() {
         setLoading(true);
         try {
             const params = new URLSearchParams();
-            if (filtros.status !== 'todos') params.set('status', filtros.status);
+            // Always fetch only finalized atendimentos
+            params.set('status', 'finalizado');
             if (filtros.dataInicio) params.set('data_inicio', filtros.dataInicio);
             if (filtros.dataFim) params.set('data_fim', filtros.dataFim);
             if (filtros.paciente) params.set('paciente', filtros.paciente);
@@ -81,7 +80,7 @@ export function AtendimentosClient() {
             if (!res.ok) throw new Error('Erro ao carregar detalhes');
             const data = await res.json();
             setDetailsCache(prev => ({ ...prev, [id]: { ...data, loading: false, documents: data.documents || [] } }));
-        } catch (err) {
+        } catch {
             setDetailsCache(prev => ({
                 ...prev,
                 [id]: { loading: false, error: 'Erro ao carregar detalhes do atendimento.', documents: [] }
@@ -109,9 +108,9 @@ export function AtendimentosClient() {
         setActiveTab(null);
     }, []);
 
-    const handleFilter = (key: keyof Filtros, value: string) => {
+    const handleFilter = useCallback((key: keyof Filtros, value: string) => {
         setFiltros(prev => ({ ...prev, [key]: value }));
-    };
+    }, []);
 
     const perPage = Math.max(1, itemsPerPage);
     const totalDisplayPages = Math.max(1, Math.ceil(allData.length / perPage));
@@ -134,17 +133,7 @@ export function AtendimentosClient() {
     const expandedItem = expandedId ? allData.find(a => a.id === expandedId) : null;
 
     return (
-        <div className="flex flex-col gap-4">
-            <AtendimentosFilterBar filtros={filtros} onFilter={handleFilter} />
-
-            <AtendimentosStats
-                total={total}
-                totalPago={totalPago}
-                totalPendente={totalPendente}
-                loading={loading}
-                hasData={allData.length > 0}
-            />
-
+        <div className="flex flex-col h-full">
             <AtendimentosTable
                 items={paginatedData}
                 loading={loading}
@@ -156,6 +145,11 @@ export function AtendimentosClient() {
                 expandedId={expandedId}
                 activeTab={activeTab}
                 onAction={handleAction}
+                filtros={filtros}
+                onFilter={handleFilter}
+                total={total}
+                totalPago={totalPago}
+                totalPendente={totalPendente}
             />
 
             {expandedItem && expandedId && activeTab && (
