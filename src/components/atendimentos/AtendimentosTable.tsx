@@ -10,7 +10,6 @@ type Filtros = { search: string; dataInicio: string; dataFim: string };
 interface Props {
     items: Atendimento[];
     loading: boolean;
-    /** Applied to the scrollable content card — NOT the toolbar wrapper */
     contentRef: React.RefObject<HTMLDivElement | null>;
     availableHeight: number;
     currentPage: number;
@@ -24,6 +23,37 @@ interface Props {
     total: number;
     totalPago: number;
     totalPendente: number;
+}
+
+// ── Pagamento label/cor ───────────────────────────────────────────────────────
+function getPagamento(a: Atendimento): { label: string; cls: string } {
+    if (a.status === 'cancelado')                      return { label: 'Cancelado',  cls: 'text-[--error]' };
+    if (!a.valor_consulta || a.valor_consulta === 0)   return { label: 'Gratuito',   cls: 'text-[--info]' };
+    switch (a.pagamento_status) {
+        case 'pago':     return { label: 'Concluído',  cls: 'text-[--success]' };
+        case 'pendente': return { label: 'Pendente',   cls: 'text-[--warning]' };
+        case 'cancelado':return { label: 'Cancelado',  cls: 'text-[--error]' };
+        case 'estornado':return { label: 'Estornado',  cls: 'text-foreground-secondary' };
+        default:         return { label: 'Pendente',   cls: 'text-[--warning]' };
+    }
+}
+
+// ── Column block (label + value) ──────────────────────────────────────────────
+function ColBlock({ label, children, className }: {
+    label: string;
+    children: React.ReactNode;
+    className?: string;
+}) {
+    return (
+        <div className={cn('flex flex-col text-left', className)}>
+            <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1">
+                {label}
+            </span>
+            <div className="text-[11px] font-bold text-slate-600 tracking-tight leading-none whitespace-nowrap">
+                {children}
+            </div>
+        </div>
+    );
 }
 
 export function AtendimentosTable({
@@ -48,9 +78,8 @@ export function AtendimentosTable({
     return (
         <div className="flex flex-col">
 
-            {/* ── Toolbar (above the card, visually joined) ── */}
+            {/* ── Toolbar ── */}
             <div className="flex flex-wrap items-center gap-2 px-2 py-1.5 bg-slate-100/50 border border-slate-200 border-b-0 rounded-t-xl shrink-0 z-10">
-                {/* Universal search */}
                 <div className="relative flex-1 min-w-[140px] sm:max-w-xs">
                     <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
                     <input
@@ -61,8 +90,6 @@ export function AtendimentosTable({
                         className="w-full pl-8 pr-3 h-9 border border-slate-200 rounded-lg bg-white text-[11px] text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm"
                     />
                 </div>
-
-                {/* Date range */}
                 <input
                     type="date"
                     value={filtros.dataInicio}
@@ -75,8 +102,6 @@ export function AtendimentosTable({
                     onChange={e => onFilter('dataFim', e.target.value)}
                     className="h-9 border border-slate-200 rounded-lg px-2 text-[11px] text-slate-600 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm"
                 />
-
-                {/* Stats (desktop only) */}
                 {!loading && total > 0 && (
                     <div className="hidden sm:flex items-center gap-3 ml-auto pr-1 text-[10px] font-medium text-slate-500 whitespace-nowrap">
                         <span><strong className="text-slate-700">{total}</strong> atendimentos</span>
@@ -86,7 +111,7 @@ export function AtendimentosTable({
                 )}
             </div>
 
-            {/* ── Content card (ref here so hook measures from below the toolbar) ── */}
+            {/* ── Content card (ref here — below toolbar) ── */}
             <div
                 ref={contentRef}
                 className="flex flex-col overflow-hidden border border-slate-200 rounded-b-xl bg-white"
@@ -103,13 +128,14 @@ export function AtendimentosTable({
                 ) : (
                     <div className="overflow-y-auto flex-1 p-3 flex flex-col gap-2">
                         {items.map(a => {
-                            const endDate = a.fim ? new Date(a.fim) : a.inicio ? new Date(a.inicio) : null;
-                            const dateStr = endDate ? endDate.toLocaleDateString('pt-BR') : '—';
-                            const timeStr = endDate
-                                ? endDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-                                : null;
+                            const endDate  = a.fim ? new Date(a.fim) : a.inicio ? new Date(a.inicio) : null;
+                            const dateStr  = endDate ? endDate.toLocaleDateString('pt-BR') : '—';
+                            const timeStr  = endDate ? endDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : null;
                             const isExpanded = expandedId === a.id;
-                            const showValor = a.valor_consulta != null && a.valor_consulta > 0;
+                            const pagamento  = getPagamento(a);
+                            const valorStr   = (a.valor_consulta != null && a.valor_consulta > 0)
+                                ? `R$ ${a.valor_consulta.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                                : '—';
 
                             return (
                                 <div
@@ -118,18 +144,15 @@ export function AtendimentosTable({
                                 >
                                     <div className="flex flex-col md:flex-row items-center justify-between p-3 gap-4">
 
-                                        {/* Left: icon + patient name (title) + token/tipo (subtitle) */}
+                                        {/* ── Left: icon + patient (title) + token/tipo (subtitle) ── */}
                                         <div className="flex items-center gap-4 w-full md:w-auto min-w-0 flex-1">
                                             <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0 transition-colors group-hover:bg-blue-100 border border-slate-100 shadow-sm">
                                                 <Stethoscope className="w-4 h-4 text-blue-600" />
                                             </div>
-
                                             <div className="flex flex-col min-w-0">
-                                                {/* Title: patient name */}
                                                 <span className="text-xs font-bold text-slate-700 truncate">
                                                     {a.paciente?.nome || '—'}
                                                 </span>
-                                                {/* Subtitle: token + tipo */}
                                                 <span className="text-[10px] text-slate-500 font-medium truncate">
                                                     #{(a.token || a.id.slice(0, 6)).toUpperCase()}
                                                     {a.tipo_consulta && (
@@ -139,30 +162,29 @@ export function AtendimentosTable({
                                             </div>
                                         </div>
 
-                                        {/* Right: valor + date + action buttons */}
-                                        <div className="flex items-center gap-6 shrink-0 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 border-slate-100 pt-3 md:pt-0">
+                                        {/* ── Right: fixed-width columns → vertical alignment across cards ── */}
+                                        <div className="flex items-center gap-4 shrink-0 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 border-slate-100 pt-3 md:pt-0">
 
-                                            {/* Valor (same layout as Data) */}
-                                            {showValor && (
-                                                <div className="flex flex-col text-left">
-                                                    <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1">Valor</span>
-                                                    <span className="text-[11px] font-bold text-slate-600 tracking-tight leading-none whitespace-nowrap">
-                                                        R$ {a.valor_consulta!.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                                    </span>
-                                                </div>
-                                            )}
+                                            {/* Valor — w-20 on md+ */}
+                                            <ColBlock label="Valor" className="md:w-20">
+                                                {valorStr}
+                                            </ColBlock>
 
-                                            {/* Data */}
-                                            <div className="flex flex-col text-left">
-                                                <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1">Data</span>
-                                                <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600 tracking-tight leading-none whitespace-nowrap">
-                                                    <span>{dateStr}</span>
-                                                    {timeStr && <span className="opacity-60 text-[10px]">{timeStr}</span>}
-                                                </div>
-                                            </div>
+                                            {/* Pagamento — w-[76px] on md+ */}
+                                            <ColBlock label="Pagamento" className="md:w-[76px]">
+                                                <span className={pagamento.cls}>{pagamento.label}</span>
+                                            </ColBlock>
 
-                                            {/* Action buttons */}
-                                            <div className="flex items-center gap-1.5">
+                                            {/* Data — w-[108px] on md+ */}
+                                            <ColBlock label="Data" className="md:w-[108px]">
+                                                <span>{dateStr}</span>
+                                                {timeStr && (
+                                                    <span className="ml-2 opacity-60 text-[10px]">{timeStr}</span>
+                                                )}
+                                            </ColBlock>
+
+                                            {/* Action buttons — w-[108px] on md+ */}
+                                            <div className="flex items-center gap-1.5 md:w-[108px] md:justify-end">
                                                 <button
                                                     onClick={() => onAction(a.id, 'summary')}
                                                     className={cn(
@@ -172,9 +194,7 @@ export function AtendimentosTable({
                                                             : "bg-white border-slate-200 text-slate-400 hover:text-rose-600 hover:border-rose-300 hover:bg-rose-50/30"
                                                     )}
                                                     title="Resumo do Atendimento"
-                                                >
-                                                    <HeartPulse className="w-4 h-4" />
-                                                </button>
+                                                ><HeartPulse className="w-4 h-4" /></button>
                                                 <button
                                                     onClick={() => onAction(a.id, 'documents')}
                                                     className={cn(
@@ -184,9 +204,7 @@ export function AtendimentosTable({
                                                             : "bg-white border-slate-200 text-slate-400 hover:text-orange-600 hover:border-orange-300 hover:bg-orange-50/30"
                                                     )}
                                                     title="Documentos Emitidos"
-                                                >
-                                                    <FileText className="w-4 h-4" />
-                                                </button>
+                                                ><FileText className="w-4 h-4" /></button>
                                                 <button
                                                     onClick={() => onAction(a.id, 'chat')}
                                                     className={cn(
@@ -196,9 +214,7 @@ export function AtendimentosTable({
                                                             : "bg-white border-slate-200 text-slate-400 hover:text-emerald-600 hover:border-emerald-300 hover:bg-emerald-50/30"
                                                     )}
                                                     title="Histórico de Chat"
-                                                >
-                                                    <MessageCircle className="w-4 h-4" />
-                                                </button>
+                                                ><MessageCircle className="w-4 h-4" /></button>
                                             </div>
                                         </div>
                                     </div>
