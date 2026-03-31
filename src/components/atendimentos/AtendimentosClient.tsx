@@ -28,8 +28,8 @@ interface AtendimentoDetail {
     chat_historico?: any[] | null;
 }
 
-/** Must match the gap-2 (8px) used in the card list */
-const CARD_HEIGHT = 58;
+/** Mobile cards are taller (~84px); desktop keeps 58px. Hook uses this for container height only. */
+const CARD_HEIGHT = 84;
 const CARD_GAP    = 8;
 const API_MAX_LIMIT = 500;
 
@@ -47,8 +47,8 @@ export function AtendimentosClient() {
     const [activeTab, setActiveTab] = useState<TabType | null>(null);
     const [detailsCache, setDetailsCache] = useState<Record<string, AtendimentoDetail>>({});
 
-    // Hook measures from the top of contentRef (below toolbar) — correct item count
-    const { itemsPerPage, availableHeight } = useDynamicPagination(contentRef, CARD_HEIGHT, CARD_GAP);
+    // Hook measures container height — items per page fixed at 4
+    const { availableHeight } = useDynamicPagination(contentRef, CARD_HEIGHT, CARD_GAP);
 
     // ── Fetch (server-side: only date range + always finalizado) ──────────────
     const fetchData = useCallback(async () => {
@@ -85,7 +85,7 @@ export function AtendimentosClient() {
     }, [allData, filtros.search]);
 
     // ── Pagination ─────────────────────────────────────────────────────────────
-    const perPage          = Math.max(1, itemsPerPage);
+    const perPage          = 4; // Fixed 4 items per page
     const totalPages       = Math.max(1, Math.ceil(filteredData.length / perPage));
     const safePage         = Math.min(displayPage, totalPages);
 
