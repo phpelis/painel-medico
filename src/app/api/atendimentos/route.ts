@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
         let query = admin
             .from('atendimentos')
             .select(`
-                id, status, inicio, fim, valor_consulta, tipo_consulta,
+                id, token, status, inicio, fim, valor_consulta, tipo_consulta,
                 pagamento_status, pagamento_id, cid, created_at,
                 paciente:pacientes(nome, cpf)
             `, { count: 'exact' })
