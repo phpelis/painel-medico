@@ -63,7 +63,7 @@ export function AtendimentosTable({
     totalPendente,
 }: Props) {
     return (
-        <div className="flex flex-col">
+        <div className="flex-1 min-h-0 flex flex-col">
 
             {/* ── Toolbar ── */}
             <div className="flex flex-wrap items-center gap-2 px-2 py-1.5 bg-slate-100/50 border border-slate-200 border-b-0 rounded-t-xl shrink-0 z-10">
@@ -98,10 +98,10 @@ export function AtendimentosTable({
                 )}
             </div>
 
-            {/* ── Content card — altura fixa via CSS, scroll interno ── */}
+            {/* ── Content card — flex-1 min-h-0 para preencher o espaço disponível ── */}
             <div
-                className="flex flex-col overflow-hidden border border-slate-200 rounded-b-xl bg-white"
-                style={{ height: 'calc(100vh - 220px)', boxShadow: 'var(--card-shadow)' }}
+                className="flex-1 min-h-0 flex flex-col overflow-hidden border border-slate-200 rounded-b-xl bg-white"
+                style={{ boxShadow: 'var(--card-shadow)' }}
             >
                 {loading ? (
                     <div className="flex-1 flex items-center justify-center text-sm text-foreground-secondary">
