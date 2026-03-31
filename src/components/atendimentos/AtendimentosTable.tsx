@@ -155,9 +155,6 @@ export function AtendimentosTable({
                                                 </span>
                                                 <span className="text-[10px] text-slate-500 font-medium truncate">
                                                     #{(a.token || a.id.slice(0, 6)).toUpperCase()}
-                                                    {a.tipo_consulta && (
-                                                        <span className="ml-1 capitalize">· {a.tipo_consulta}</span>
-                                                    )}
                                                 </span>
                                             </div>
                                         </div>
@@ -165,8 +162,13 @@ export function AtendimentosTable({
                                         {/* ── Right: fixed-width columns → vertical alignment across cards ── */}
                                         <div className="flex items-center gap-4 shrink-0 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 border-slate-100 pt-3 md:pt-0">
 
-                                            {/* Valor — w-20 on md+ */}
-                                            <ColBlock label="Valor" className="md:w-20">
+                                            {/* Tipo — w-[76px] on md+ */}
+                                            <ColBlock label="Tipo" className="md:w-[76px]">
+                                                <span className="capitalize">{a.tipo_consulta || '—'}</span>
+                                            </ColBlock>
+
+                                            {/* Valor — w-[76px] on md+ (same as Pagamento for consistent spacing) */}
+                                            <ColBlock label="Valor" className="md:w-[76px]">
                                                 {valorStr}
                                             </ColBlock>
 

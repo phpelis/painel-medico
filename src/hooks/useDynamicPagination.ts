@@ -40,7 +40,7 @@ export function useDynamicPagination(
         const forItems = totalHeight - PAGINATION_HEIGHT - CONTAINER_PADDING - BOTTOM_MARGIN;
         const count = Math.max(MIN_ITEMS, Math.floor((forItems + gap) / (itemHeight + gap)));
 
-        setAvailableHeight(totalHeight);
+        setAvailableHeight(totalHeight - BOTTOM_MARGIN);
         setItemsPerPage(count);
     }, [containerRef, itemHeight, gap]);
 
