@@ -1,15 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { Atendimento } from '@/types/database';
-import { useDynamicPagination } from '@/hooks/useDynamicPagination';
 
 import { AtendimentosTable } from './AtendimentosTable';
 import { AtendimentoDetailsModal } from './AtendimentoDetailsModal';
 
-/** Server-side date filters only — search is done client-side */
 type Filtros = { search: string; dataInicio: string; dataFim: string };
-
 type TabType = 'summary' | 'documents' | 'chat';
 
 interface AtendimentoDetail {
@@ -28,29 +25,18 @@ interface AtendimentoDetail {
     chat_historico?: any[] | null;
 }
 
-/** Mobile cards are taller (~84px); desktop keeps 58px. Hook uses this for container height only. */
-const CARD_HEIGHT = 84;
-const CARD_GAP    = 8;
 const API_MAX_LIMIT = 500;
 
 export function AtendimentosClient() {
-    // contentRef goes on the scrollable card — NOT the toolbar wrapper
-    const contentRef = useRef<HTMLDivElement>(null);
-
     const [filtros, setFiltros] = useState<Filtros>({ search: '', dataInicio: '', dataFim: '' });
     const [allData, setAllData] = useState<Atendimento[]>([]);
     const [loading, setLoading] = useState(true);
-    const [displayPage, setDisplayPage] = useState(1);
 
-    // Modal state
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<TabType | null>(null);
     const [detailsCache, setDetailsCache] = useState<Record<string, AtendimentoDetail>>({});
 
-    // Hook measures container height — items per page fixed at 4
-    const { availableHeight } = useDynamicPagination(contentRef, CARD_HEIGHT, CARD_GAP);
-
-    // ── Fetch (server-side: only date range + always finalizado) ──────────────
+    // ── Fetch (date range server-side, always finalizado) ─────────────────────
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
@@ -63,7 +49,6 @@ export function AtendimentosClient() {
             const res  = await fetch(`/api/atendimentos?${params}`);
             const json = await res.json();
             setAllData(json.data || []);
-            setDisplayPage(1);
         } catch {
             setAllData([]);
         } finally {
@@ -73,7 +58,7 @@ export function AtendimentosClient() {
 
     useEffect(() => { fetchData(); }, [fetchData]);
 
-    // ── Client-side search (nome, token, tipo) ─────────────────────────────────
+    // ── Client-side search ─────────────────────────────────────────────────────
     const filteredData = useMemo(() => {
         const term = filtros.search.trim().toLowerCase();
         if (!term) return allData;
@@ -84,17 +69,7 @@ export function AtendimentosClient() {
         );
     }, [allData, filtros.search]);
 
-    // ── Pagination ─────────────────────────────────────────────────────────────
-    const perPage          = API_MAX_LIMIT; // Show all items — scroll handles navigation
-    const totalPages       = Math.max(1, Math.ceil(filteredData.length / perPage));
-    const safePage         = Math.min(displayPage, totalPages);
-
-    const paginatedData = useMemo(() => {
-        const start = (safePage - 1) * perPage;
-        return filteredData.slice(start, start + perPage);
-    }, [filteredData, safePage, perPage]);
-
-    // ── Stats (computed from full allData, not filtered) ──────────────────────
+    // ── Stats ─────────────────────────────────────────────────────────────────
     const { totalPago, totalPendente } = useMemo(() => ({
         totalPago:     allData.filter(a => a.pagamento_status === 'pago')
                               .reduce((s, a) => s + (a.valor_consulta || 0), 0),
@@ -130,7 +105,6 @@ export function AtendimentosClient() {
 
     const handleFilter = useCallback((key: keyof Filtros, value: string) => {
         setFiltros(prev => ({ ...prev, [key]: value }));
-        if (key !== 'search') setDisplayPage(1);
     }, []);
 
     const expandedItem = expandedId ? allData.find(a => a.id === expandedId) ?? null : null;
@@ -138,13 +112,8 @@ export function AtendimentosClient() {
     return (
         <div className="flex flex-col">
             <AtendimentosTable
-                items={paginatedData}
+                items={filteredData}
                 loading={loading}
-                contentRef={contentRef}
-                availableHeight={availableHeight}
-                currentPage={safePage}
-                totalPages={totalPages}
-                onPageChange={setDisplayPage}
                 expandedId={expandedId}
                 activeTab={activeTab}
                 onAction={handleAction}

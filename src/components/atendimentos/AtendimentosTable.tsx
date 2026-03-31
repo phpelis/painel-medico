@@ -2,7 +2,6 @@
 
 import { Search, Stethoscope, HeartPulse, FileText, MessageCircle } from 'lucide-react';
 import type { Atendimento } from '@/types/database';
-import { PaginationControls } from '@/components/ui/PaginationControls';
 import { cn } from '@/utils';
 
 type Filtros = { search: string; dataInicio: string; dataFim: string };
@@ -10,11 +9,6 @@ type Filtros = { search: string; dataInicio: string; dataFim: string };
 interface Props {
     items: Atendimento[];
     loading: boolean;
-    contentRef: React.RefObject<HTMLDivElement | null>;
-    availableHeight: number;
-    currentPage: number;
-    totalPages: number;
-    onPageChange: (page: number) => void;
     expandedId: string | null;
     activeTab: 'summary' | 'documents' | 'chat' | null;
     onAction: (id: string, tab: 'summary' | 'documents' | 'chat') => void;
@@ -59,11 +53,6 @@ function ColBlock({ label, children, className }: {
 export function AtendimentosTable({
     items,
     loading,
-    contentRef,
-    availableHeight,
-    currentPage,
-    totalPages,
-    onPageChange,
     expandedId,
     activeTab,
     onAction,
@@ -73,8 +62,6 @@ export function AtendimentosTable({
     totalPago,
     totalPendente,
 }: Props) {
-    const contentStyle: React.CSSProperties = availableHeight > 0 ? { height: availableHeight } : {};
-
     return (
         <div className="flex flex-col">
 
@@ -111,18 +98,17 @@ export function AtendimentosTable({
                 )}
             </div>
 
-            {/* ── Content card (ref here — below toolbar) ── */}
+            {/* ── Content card — altura fixa via CSS, scroll interno ── */}
             <div
-                ref={contentRef}
                 className="flex flex-col overflow-hidden border border-slate-200 rounded-b-xl bg-white"
-                style={{ ...contentStyle, boxShadow: 'var(--card-shadow)' }}
+                style={{ height: 'calc(100vh - 220px)', boxShadow: 'var(--card-shadow)' }}
             >
                 {loading ? (
-                    <div className="flex-1 flex items-center justify-center text-sm text-foreground-secondary py-12">
+                    <div className="flex-1 flex items-center justify-center text-sm text-foreground-secondary">
                         Carregando...
                     </div>
                 ) : items.length === 0 ? (
-                    <div className="flex-1 flex items-center justify-center text-sm text-foreground-secondary py-12">
+                    <div className="flex-1 flex items-center justify-center text-sm text-foreground-secondary">
                         Nenhum atendimento encontrado.
                     </div>
                 ) : (
@@ -144,17 +130,15 @@ export function AtendimentosTable({
                                 >
                                     {/* ── Mobile layout (< md) ── */}
                                     <div className="flex md:hidden p-3 gap-3">
-                                        {/* Icon */}
                                         <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center shrink-0 border border-slate-100 shadow-sm group-hover:bg-blue-100 transition-colors mt-0.5">
                                             <Stethoscope className="w-[18px] h-[18px] text-blue-600" />
                                         </div>
-                                        {/* Content */}
                                         <div className="flex flex-col flex-1 min-w-0 gap-1.5">
-                                            {/* Row 1: name */}
+                                            {/* Linha 1: nome */}
                                             <span className="text-[13px] font-bold text-slate-700 leading-tight break-words">
                                                 {a.paciente?.nome || '—'}
                                             </span>
-                                            {/* Row 2: token · tipo · valor · status · data */}
+                                            {/* Linha 2: token · tipo · valor · status · data */}
                                             <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                                                 <span className="text-[10px] text-slate-400 font-semibold tracking-wide">
                                                     #{(a.token || a.id.slice(0, 6)).toUpperCase()}
@@ -172,12 +156,12 @@ export function AtendimentosTable({
                                                     {dateStr}{timeStr && <span className="ml-1 opacity-60">{timeStr}</span>}
                                                 </span>
                                             </div>
-                                            {/* Row 3: action buttons */}
+                                            {/* Linha 3: botões de ação */}
                                             <div className="flex items-center gap-1.5 pt-0.5">
                                                 <button
                                                     onClick={() => onAction(a.id, 'summary')}
                                                     className={cn(
-                                                        "flex items-center justify-center gap-1.5 px-3 h-8 border rounded-lg text-[11px] font-medium transition-all duration-200",
+                                                        "flex items-center gap-1.5 px-3 h-8 border rounded-lg text-[11px] font-medium transition-all duration-200",
                                                         activeTab === 'summary' && isExpanded
                                                             ? "border-rose-200 text-rose-700 bg-rose-50 ring-1 ring-rose-100"
                                                             : "bg-white border-slate-200 text-slate-500 hover:text-rose-600 hover:border-rose-300 hover:bg-rose-50/30"
@@ -186,7 +170,7 @@ export function AtendimentosTable({
                                                 <button
                                                     onClick={() => onAction(a.id, 'documents')}
                                                     className={cn(
-                                                        "flex items-center justify-center gap-1.5 px-3 h-8 border rounded-lg text-[11px] font-medium transition-all duration-200",
+                                                        "flex items-center gap-1.5 px-3 h-8 border rounded-lg text-[11px] font-medium transition-all duration-200",
                                                         activeTab === 'documents' && isExpanded
                                                             ? "border-orange-200 text-orange-700 bg-orange-50 ring-1 ring-orange-100"
                                                             : "bg-white border-slate-200 text-slate-500 hover:text-orange-600 hover:border-orange-300 hover:bg-orange-50/30"
@@ -195,7 +179,7 @@ export function AtendimentosTable({
                                                 <button
                                                     onClick={() => onAction(a.id, 'chat')}
                                                     className={cn(
-                                                        "flex items-center justify-center gap-1.5 px-3 h-8 border rounded-lg text-[11px] font-medium transition-all duration-200",
+                                                        "flex items-center gap-1.5 px-3 h-8 border rounded-lg text-[11px] font-medium transition-all duration-200",
                                                         activeTab === 'chat' && isExpanded
                                                             ? "border-emerald-200 text-emerald-700 bg-emerald-50 ring-1 ring-emerald-100"
                                                             : "bg-white border-slate-200 text-slate-500 hover:text-emerald-600 hover:border-emerald-300 hover:bg-emerald-50/30"
@@ -207,9 +191,7 @@ export function AtendimentosTable({
 
                                     {/* ── Desktop layout (md+) ── */}
                                     <div className="hidden md:flex items-center justify-between p-3 gap-4">
-
-                                        {/* Left: icon + patient */}
-                                        <div className="flex items-center gap-4 w-auto min-w-0 flex-1">
+                                        <div className="flex items-center gap-4 min-w-0 flex-1">
                                             <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0 transition-colors group-hover:bg-blue-100 border border-slate-100 shadow-sm">
                                                 <Stethoscope className="w-4 h-4 text-blue-600" />
                                             </div>
@@ -222,8 +204,6 @@ export function AtendimentosTable({
                                                 </span>
                                             </div>
                                         </div>
-
-                                        {/* Right: fixed-width columns */}
                                         <div className="flex items-center gap-4 shrink-0 justify-end">
                                             <ColBlock label="Tipo" className="w-[76px]">
                                                 <span className="capitalize">{a.tipo_consulta || '—'}</span>
@@ -277,16 +257,6 @@ export function AtendimentosTable({
                                 </div>
                             );
                         })}
-                    </div>
-                )}
-
-                {!loading && totalPages > 1 && (
-                    <div className="px-4 py-3 shrink-0 border-t border-slate-200">
-                        <PaginationControls
-                            currentPage={currentPage}
-                            totalPages={totalPages}
-                            onPageChange={onPageChange}
-                        />
                     </div>
                 )}
             </div>
