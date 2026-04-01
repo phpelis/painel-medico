@@ -67,7 +67,7 @@ export function AtendimentosTable({
     const outerStyle: React.CSSProperties = availableHeight > 0 ? { maxHeight: availableHeight } : {};
 
     return (
-        <div className="flex flex-col">
+        <div className="flex flex-col h-full min-h-0">
 
             {/* ── Toolbar ── */}
             <div className="flex flex-wrap items-center gap-2 px-2 py-1.5 bg-slate-100/50 border border-slate-200 border-b-0 rounded-t-xl shrink-0">

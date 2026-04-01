@@ -164,7 +164,7 @@ export function DocumentosGrid({ modelos: initial }: Props) {
 
     return (
         <>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 h-full min-h-0">
                 <DocumentFilterBar
                     searchTerm={searchTerm}
                     setSearchTerm={setSearchTerm}

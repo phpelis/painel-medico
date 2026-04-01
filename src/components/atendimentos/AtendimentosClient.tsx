@@ -130,7 +130,7 @@ export function AtendimentosClient() {
     const expandedItem = expandedId ? allData.find(a => a.id === expandedId) ?? null : null;
 
     return (
-        <div className="flex flex-col">
+        <div className="flex flex-col h-full">
             <AtendimentosTable
                 items={filteredData}
                 loading={loading}

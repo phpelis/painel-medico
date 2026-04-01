@@ -14,7 +14,7 @@ export default async function DocumentosPage() {
         .order('titulo', { ascending: true });
 
     return (
-        <div className="p-4">
+        <div className="p-4 h-full overflow-hidden flex flex-col">
             <DocumentosGrid modelos={(modelos || []) as DocumentoModelo[]} />
         </div>
     );
