@@ -104,16 +104,14 @@ export function AtendimentosTable({
                     <div className="flex-1 flex flex-col min-h-0">
 
                         {/* Scroll container */}
-                        <div className="flex-1 overflow-y-auto px-3 pt-3 pb-0">
-                            <div className="flex flex-col gap-2">
+                        <div className="flex-1 overflow-y-auto px-4 pt-4 pb-0">
+                            <div className="flex flex-col gap-3">
                                 {pageItems.map(a => {
                                     const endDate    = a.fim ? new Date(a.fim) : a.inicio ? new Date(a.inicio) : null;
                                     const dateStr    = endDate ? endDate.toLocaleDateString('pt-BR') : '—';
                                     const timeStr    = endDate ? endDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : null;
                                     const isExpanded = expandedId === a.id;
                                     const pagamento  = getPagamento(a);
-                                    const valorStr   = (a.valor_consulta != null && a.valor_consulta > 0)
-                                        ? `R$ ${a.valor_consulta.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '—';
 
                                     return (
                                         <div key={a.id} className="group flex flex-col bg-white border border-slate-200 rounded-xl shadow-sm transition-all duration-200 overflow-hidden hover:border-blue-300 hover:shadow-md">
@@ -127,14 +125,9 @@ export function AtendimentosTable({
                                                     </div>
                                                     <div className="flex flex-col min-w-0">
                                                         <span className="text-xs font-bold text-slate-700 truncate">{a.paciente?.nome || '—'}</span>
-                                                        <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0">
-                                                            <span className="text-[10px] text-slate-400 font-semibold tracking-wide">#{(a.token || a.id.slice(0, 6)).toUpperCase()}</span>
-                                                            {a.tipo_consulta && <><span className="text-slate-300 text-[9px]">·</span><span className="text-[10px] text-slate-500 capitalize">{a.tipo_consulta}</span></>}
-                                                            <span className="text-slate-300 text-[9px]">·</span>
-                                                            <span className="text-[10px] font-bold text-slate-600">{valorStr}</span>
-                                                            <span className="text-slate-300 text-[9px]">·</span>
-                                                            <span className={cn("text-[10px] font-bold", pagamento.cls)}>{pagamento.label}</span>
-                                                        </div>
+                                                        <span className="text-[10px] text-slate-500 font-medium truncate">
+                                                            #{(a.token || a.id.slice(0, 6)).toUpperCase()}{a.tipo_consulta && ` · ${a.tipo_consulta}`}{` — ${pagamento.label}`}
+                                                        </span>
                                                     </div>
                                                 </div>
                                                 {/* Divider + date + icon-only buttons */}
@@ -162,18 +155,17 @@ export function AtendimentosTable({
                                                     </div>
                                                     <div className="flex flex-col min-w-0">
                                                         <span className="text-xs font-bold text-slate-700 truncate">{a.paciente?.nome || '—'}</span>
-                                                        <span className="text-[10px] text-slate-500 font-medium truncate">#{(a.token || a.id.slice(0, 6)).toUpperCase()}</span>
+                                                        <span className="text-[10px] text-slate-500 font-medium truncate">
+                                                            #{(a.token || a.id.slice(0, 6)).toUpperCase()}{a.tipo_consulta && ` · ${a.tipo_consulta}`}{` — ${pagamento.label}`}
+                                                        </span>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-4 shrink-0 justify-end">
-                                                    <ColBlock label="Tipo" className="w-[76px]"><span className="capitalize">{a.tipo_consulta || '—'}</span></ColBlock>
-                                                    <ColBlock label="Valor" className="w-[76px]">{valorStr}</ColBlock>
-                                                    <ColBlock label="Pagamento" className="w-[76px]"><span className={pagamento.cls}>{pagamento.label}</span></ColBlock>
-                                                    <ColBlock label="Data" className="w-[108px]">
+                                                <div className="flex items-center gap-6 shrink-0 justify-end">
+                                                    <ColBlock label="Data">
                                                         <span>{dateStr}</span>
                                                         {timeStr && <span className="ml-2 opacity-60 text-[10px]">{timeStr}</span>}
                                                     </ColBlock>
-                                                    <div className="flex items-center gap-1.5 w-[108px] justify-end">
+                                                    <div className="flex items-center gap-1.5">
                                                         <button onClick={() => onAction(a.id, 'summary')} className={cn("flex items-center justify-center w-8 h-8 border rounded-lg transition-all", activeTab === 'summary' && isExpanded ? "border-rose-200 text-rose-700 bg-rose-50 ring-1 ring-rose-100" : "bg-white border-slate-200 text-slate-400 hover:text-rose-600 hover:border-rose-300 hover:bg-rose-50/30")} title="Resumo"><HeartPulse className="w-4 h-4" /></button>
                                                         <button onClick={() => onAction(a.id, 'documents')} className={cn("flex items-center justify-center w-8 h-8 border rounded-lg transition-all", activeTab === 'documents' && isExpanded ? "border-orange-200 text-orange-700 bg-orange-50 ring-1 ring-orange-100" : "bg-white border-slate-200 text-slate-400 hover:text-orange-600 hover:border-orange-300 hover:bg-orange-50/30")} title="Documentos"><FileText className="w-4 h-4" /></button>
                                                         <button onClick={() => onAction(a.id, 'chat')} className={cn("flex items-center justify-center w-8 h-8 border rounded-lg transition-all", activeTab === 'chat' && isExpanded ? "border-emerald-200 text-emerald-700 bg-emerald-50 ring-1 ring-emerald-100" : "bg-white border-slate-200 text-slate-400 hover:text-emerald-600 hover:border-emerald-300 hover:bg-emerald-50/30")} title="Chat"><MessageCircle className="w-4 h-4" /></button>
