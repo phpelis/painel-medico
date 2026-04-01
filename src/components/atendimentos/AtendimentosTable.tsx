@@ -51,7 +51,7 @@ export function AtendimentosTable({
 }: Props) {
     // containerRef: medido via getBoundingClientRect — sem loop circular
     const containerRef = useRef<HTMLDivElement>(null);
-    const { itemsPerPage, availableHeight } = useDynamicPagination(containerRef, 68, 8);
+    const { itemsPerPage, availableHeight } = useDynamicPagination(containerRef, 68, 12);
 
     const [currentPage, setCurrentPage] = useState(1);
     useEffect(() => { setCurrentPage(1); }, [items.length]);
@@ -181,7 +181,7 @@ export function AtendimentosTable({
                         {/* Paginação fixa na base */}
                         {totalPages > 1 && (
                             <div className="px-4 pb-4 bg-white shrink-0 z-10">
-                                <PaginationControls currentPage={safePage} totalPages={totalPages} onPageChange={setCurrentPage} className="pt-4 border-t border-slate-100 mt-2" />
+                                <PaginationControls currentPage={safePage} totalPages={totalPages} onPageChange={setCurrentPage} />
                             </div>
                         )}
                     </div>
