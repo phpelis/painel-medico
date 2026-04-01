@@ -7,7 +7,7 @@ import { PaginationControls } from '@/components/ui/PaginationControls';
 import { useDynamicPagination } from '@/hooks/useDynamicPagination';
 import { cn } from '@/utils';
 
-type Filtros = { search: string; dataInicio: string; dataFim: string };
+type Filtros = { search: string };
 
 interface Props {
     items: Atendimento[];
@@ -75,16 +75,12 @@ export function AtendimentosTable({
                     <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
                     <input
                         type="text"
-                        placeholder="Buscar por paciente, token ou tipo..."
+                        placeholder="Buscar por paciente, token, tipo ou dd/mm/aa - dd/mm/aa..."
                         value={filtros.search}
                         onChange={e => onFilter('search', e.target.value)}
                         className="w-full pl-8 pr-3 h-9 border border-slate-200 rounded-lg bg-white text-[11px] text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm"
                     />
                 </div>
-                <input type="date" value={filtros.dataInicio} onChange={e => onFilter('dataInicio', e.target.value)}
-                    className="h-9 border border-slate-200 rounded-lg px-2 text-[11px] text-slate-600 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm" />
-                <input type="date" value={filtros.dataFim} onChange={e => onFilter('dataFim', e.target.value)}
-                    className="h-9 border border-slate-200 rounded-lg px-2 text-[11px] text-slate-600 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm" />
                 {!loading && total > 0 && (
                     <div className="hidden sm:flex items-center gap-3 ml-auto pr-1 text-[10px] font-medium text-slate-500 whitespace-nowrap">
                         <span><strong className="text-slate-700">{total}</strong> atendimentos</span>
@@ -123,26 +119,37 @@ export function AtendimentosTable({
                                         <div key={a.id} className="group flex flex-col bg-white border border-slate-200 rounded-xl shadow-sm transition-all duration-200 overflow-hidden hover:border-blue-300 hover:shadow-md">
 
                                             {/* ── Mobile (< md) ── */}
-                                            <div className="flex md:hidden p-3 gap-3">
-                                                <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center shrink-0 border border-slate-100 shadow-sm group-hover:bg-blue-100 transition-colors mt-0.5">
-                                                    <Stethoscope className="w-[18px] h-[18px] text-blue-600" />
-                                                </div>
-                                                <div className="flex flex-col flex-1 min-w-0 gap-1.5">
-                                                    <span className="text-[13px] font-bold text-slate-700 leading-tight break-words">{a.paciente?.nome || '—'}</span>
-                                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                                                        <span className="text-[10px] text-slate-400 font-semibold tracking-wide">#{(a.token || a.id.slice(0, 6)).toUpperCase()}</span>
-                                                        {a.tipo_consulta && <><span className="text-slate-300 text-[10px]">·</span><span className="text-[10px] text-slate-500 capitalize">{a.tipo_consulta}</span></>}
-                                                        <span className="text-slate-300 text-[10px]">·</span>
-                                                        <span className="text-[11px] font-bold text-slate-600">{valorStr}</span>
-                                                        <span className="text-slate-300 text-[10px]">·</span>
-                                                        <span className={cn("text-[11px] font-bold", pagamento.cls)}>{pagamento.label}</span>
-                                                        <span className="text-slate-300 text-[10px]">·</span>
-                                                        <span className="text-[10px] text-slate-500">{dateStr}{timeStr && <span className="ml-1 opacity-60">{timeStr}</span>}</span>
+                                            <div className="flex flex-col md:hidden p-3 gap-0">
+                                                {/* Top: icon + name + meta */}
+                                                <div className="flex items-center gap-3 w-full min-w-0">
+                                                    <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0 transition-colors group-hover:bg-blue-100 border border-slate-100 shadow-sm">
+                                                        <Stethoscope className="w-4 h-4 text-blue-600" />
                                                     </div>
-                                                    <div className="flex items-center gap-1.5 pt-0.5">
-                                                        <button onClick={() => onAction(a.id, 'summary')} className={cn("flex items-center gap-1.5 px-3 h-8 border rounded-lg text-[11px] font-medium transition-all", activeTab === 'summary' && isExpanded ? "border-rose-200 text-rose-700 bg-rose-50" : "bg-white border-slate-200 text-slate-500 hover:text-rose-600 hover:border-rose-300")}><HeartPulse className="w-3.5 h-3.5" />Resumo</button>
-                                                        <button onClick={() => onAction(a.id, 'documents')} className={cn("flex items-center gap-1.5 px-3 h-8 border rounded-lg text-[11px] font-medium transition-all", activeTab === 'documents' && isExpanded ? "border-orange-200 text-orange-700 bg-orange-50" : "bg-white border-slate-200 text-slate-500 hover:text-orange-600 hover:border-orange-300")}><FileText className="w-3.5 h-3.5" />Docs</button>
-                                                        <button onClick={() => onAction(a.id, 'chat')} className={cn("flex items-center gap-1.5 px-3 h-8 border rounded-lg text-[11px] font-medium transition-all", activeTab === 'chat' && isExpanded ? "border-emerald-200 text-emerald-700 bg-emerald-50" : "bg-white border-slate-200 text-slate-500 hover:text-emerald-600 hover:border-emerald-300")}><MessageCircle className="w-3.5 h-3.5" />Chat</button>
+                                                    <div className="flex flex-col min-w-0">
+                                                        <span className="text-xs font-bold text-slate-700 truncate">{a.paciente?.nome || '—'}</span>
+                                                        <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0">
+                                                            <span className="text-[10px] text-slate-400 font-semibold tracking-wide">#{(a.token || a.id.slice(0, 6)).toUpperCase()}</span>
+                                                            {a.tipo_consulta && <><span className="text-slate-300 text-[9px]">·</span><span className="text-[10px] text-slate-500 capitalize">{a.tipo_consulta}</span></>}
+                                                            <span className="text-slate-300 text-[9px]">·</span>
+                                                            <span className="text-[10px] font-bold text-slate-600">{valorStr}</span>
+                                                            <span className="text-slate-300 text-[9px]">·</span>
+                                                            <span className={cn("text-[10px] font-bold", pagamento.cls)}>{pagamento.label}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {/* Divider + date + icon-only buttons */}
+                                                <div className="flex items-center justify-between border-t border-slate-100 mt-3 pt-3">
+                                                    <div className="flex flex-col text-left">
+                                                        <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1">Data</span>
+                                                        <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600 tracking-tight leading-none whitespace-nowrap">
+                                                            <span>{dateStr}</span>
+                                                            {timeStr && <span className="text-slate-600 opacity-60 text-[10px]">{timeStr}</span>}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <button onClick={() => onAction(a.id, 'summary')} className={cn("flex items-center justify-center w-8 h-8 border rounded-lg transition-all duration-200", activeTab === 'summary' && isExpanded ? "border-rose-200 text-rose-700 bg-rose-50 ring-1 ring-rose-100" : "bg-white border-slate-200 text-slate-400 hover:text-rose-600 hover:border-rose-300 hover:bg-rose-50/30")} title="Resumo"><HeartPulse className="w-4 h-4" /></button>
+                                                        <button onClick={() => onAction(a.id, 'documents')} className={cn("flex items-center justify-center w-8 h-8 border rounded-lg transition-all duration-200", activeTab === 'documents' && isExpanded ? "border-orange-200 text-orange-700 bg-orange-50 ring-1 ring-orange-100" : "bg-white border-slate-200 text-slate-400 hover:text-orange-600 hover:border-orange-300 hover:bg-orange-50/30")} title="Documentos"><FileText className="w-4 h-4" /></button>
+                                                        <button onClick={() => onAction(a.id, 'chat')} className={cn("flex items-center justify-center w-8 h-8 border rounded-lg transition-all duration-200", activeTab === 'chat' && isExpanded ? "border-emerald-200 text-emerald-700 bg-emerald-50 ring-1 ring-emerald-100" : "bg-white border-slate-200 text-slate-400 hover:text-emerald-600 hover:border-emerald-300 hover:bg-emerald-50/30")} title="Chat"><MessageCircle className="w-4 h-4" /></button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -181,7 +188,7 @@ export function AtendimentosTable({
 
                         {/* Paginação fixa na base */}
                         {totalPages > 1 && (
-                            <div className="px-4 pb-4 bg-white shrink-0">
+                            <div className="px-4 pb-4 pt-3 bg-white shrink-0 border-t border-slate-200">
                                 <PaginationControls currentPage={safePage} totalPages={totalPages} onPageChange={setCurrentPage} />
                             </div>
                         )}

@@ -268,7 +268,7 @@ function ChatTab({ detail, pacienteNome }: { detail: AtendimentoDetail; paciente
                                 <p className={cn("text-[9px] font-bold uppercase mb-0.5 opacity-70", isDoctor ? "text-blue-100" : "text-slate-400")}>
                                     {isDoctor ? 'Médico' : pacienteNome}
                                 </p>
-                                <p>{msg.content || msg.message || ''}</p>
+                                <p className="whitespace-pre-wrap">{msg.content || msg.message || ''}</p>
                             </div>
                         </div>
                     );

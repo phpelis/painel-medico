@@ -4,7 +4,6 @@ import { useState, useEffect, useLayoutEffect, useCallback, RefObject } from 're
 
 const PAGINATION_HEIGHT = 48;
 const CONTAINER_PADDING = 32; // pt-4 (16px) + pb-4 (16px)
-const BOTTOM_MARGIN = 16;
 const MIN_ITEMS = 4;
 
 /**
@@ -37,10 +36,10 @@ export function useDynamicPagination(
             return;
         }
 
-        const forItems = totalHeight - PAGINATION_HEIGHT - CONTAINER_PADDING - BOTTOM_MARGIN;
+        const forItems = totalHeight - PAGINATION_HEIGHT - CONTAINER_PADDING;
         const count = Math.max(MIN_ITEMS, Math.floor((forItems + gap) / (itemHeight + gap)));
 
-        setAvailableHeight(totalHeight - BOTTOM_MARGIN);
+        setAvailableHeight(totalHeight);
         setItemsPerPage(count);
     }, [containerRef, itemHeight, gap]);
 

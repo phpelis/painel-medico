@@ -6,7 +6,7 @@ import type { Atendimento } from '@/types/database';
 import { AtendimentosTable } from './AtendimentosTable';
 import { AtendimentoDetailsModal } from './AtendimentoDetailsModal';
 
-type Filtros = { search: string; dataInicio: string; dataFim: string };
+type Filtros = { search: string };
 type TabType = 'summary' | 'documents' | 'chat';
 
 interface AtendimentoDetail {
@@ -28,7 +28,7 @@ interface AtendimentoDetail {
 const API_MAX_LIMIT = 500;
 
 export function AtendimentosClient() {
-    const [filtros, setFiltros] = useState<Filtros>({ search: '', dataInicio: '', dataFim: '' });
+    const [filtros, setFiltros] = useState<Filtros>({ search: '' });
     const [allData, setAllData] = useState<Atendimento[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -36,14 +36,12 @@ export function AtendimentosClient() {
     const [activeTab, setActiveTab] = useState<TabType | null>(null);
     const [detailsCache, setDetailsCache] = useState<Record<string, AtendimentoDetail>>({});
 
-    // ── Fetch (date range server-side, always finalizado) ─────────────────────
+    // ── Fetch (always finalizado, all data — date filtering done client-side) ──
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
             const params = new URLSearchParams();
             params.set('status', 'finalizado');
-            if (filtros.dataInicio) params.set('data_inicio', filtros.dataInicio);
-            if (filtros.dataFim)    params.set('data_fim',    filtros.dataFim);
             params.set('limit', String(API_MAX_LIMIT));
 
             const res  = await fetch(`/api/atendimentos?${params}`);
@@ -54,18 +52,40 @@ export function AtendimentosClient() {
         } finally {
             setLoading(false);
         }
-    }, [filtros.dataInicio, filtros.dataFim]);
+    }, []);
 
     useEffect(() => { fetchData(); }, [fetchData]);
 
-    // ── Client-side search ─────────────────────────────────────────────────────
+    // ── Client-side search + date range filter ────────────────────────────────
     const filteredData = useMemo(() => {
-        const term = filtros.search.trim().toLowerCase();
+        const term = filtros.search.trim();
         if (!term) return allData;
+
+        // Date range: dd/mm/aa - dd/mm/aa  or  dd/mm/aaaa - dd/mm/aaaa
+        const rangeMatch = term.match(/^(\d{2}\/\d{2}\/\d{2,4})\s*-\s*(\d{2}\/\d{2}\/\d{2,4})$/);
+        if (rangeMatch) {
+            const parseDate = (s: string): Date | null => {
+                const parts = s.trim().split('/');
+                if (parts.length !== 3) return null;
+                const [d, m, y] = parts.map(Number);
+                return new Date(y < 100 ? 2000 + y : y, m - 1, d);
+            };
+            const start = parseDate(rangeMatch[1]);
+            const end   = parseDate(rangeMatch[2]);
+            if (start && end) {
+                end.setHours(23, 59, 59, 999);
+                return allData.filter(a => {
+                    const dt = a.fim ? new Date(a.fim) : a.inicio ? new Date(a.inicio) : null;
+                    return dt ? dt >= start && dt <= end : false;
+                });
+            }
+        }
+
+        const lower = term.toLowerCase();
         return allData.filter(a =>
-            a.paciente?.nome?.toLowerCase().includes(term) ||
-            a.token?.toLowerCase().includes(term)         ||
-            a.tipo_consulta?.toLowerCase().includes(term)
+            a.paciente?.nome?.toLowerCase().includes(lower) ||
+            a.token?.toLowerCase().includes(lower)         ||
+            a.tipo_consulta?.toLowerCase().includes(lower)
         );
     }, [allData, filtros.search]);
 
