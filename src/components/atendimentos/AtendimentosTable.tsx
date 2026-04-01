@@ -104,7 +104,7 @@ export function AtendimentosTable({
                     <div className="flex-1 flex flex-col min-h-0">
 
                         {/* Scroll container */}
-                        <div className="flex-1 overflow-y-auto px-4 pt-4 pb-0">
+                        <div className="flex-1 overflow-y-auto px-4 pt-4 pb-4">
                             <div className="flex flex-col gap-3">
                                 {pageItems.map(a => {
                                     const endDate    = a.fim ? new Date(a.fim) : a.inicio ? new Date(a.inicio) : null;
@@ -180,8 +180,8 @@ export function AtendimentosTable({
 
                         {/* Paginação fixa na base */}
                         {totalPages > 1 && (
-                            <div className="px-4 pb-4 pt-3 bg-white shrink-0 border-t border-slate-200">
-                                <PaginationControls currentPage={safePage} totalPages={totalPages} onPageChange={setCurrentPage} />
+                            <div className="px-4 pb-4 bg-white shrink-0 z-10">
+                                <PaginationControls currentPage={safePage} totalPages={totalPages} onPageChange={setCurrentPage} className="pt-4 border-t border-slate-100 mt-2" />
                             </div>
                         )}
                     </div>
